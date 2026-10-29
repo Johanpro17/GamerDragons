@@ -49,7 +49,7 @@ El mundo de bloques se genera al avanzar. Se puede caminar, saltar y mantener pu
 | 1 | `W`, `A`, `S`, `D` | `Espacio` | Mantén `F` |
 | 2 | `↑`, `←`, `↓`, `→` | `Enter` | Mantén `R` |
 
-En pantallas táctiles, mantén **VOLAR** para subir. También se admiten dos gamepads y controles táctiles separados para cada jugador. Arrastra el ratón o el dedo sobre el mundo para girar la cámara, y usa `Esc` para volver al menú.
+En pantallas táctiles, mantén **VOLAR** para subir. También se admiten dos gamepads y controles táctiles separados para cada jugador. El movimiento es relativo a la cámara: cada dragón puede desplazarse en cualquier dirección, y arrastrar el ratón o el dedo sobre el mundo permite orbitar la vista 360° alrededor de los jugadores. Usa `Esc` para volver al menú.
 
 El renderer 3D usa Three.js 0.149.0 y las salas cargan PeerJS 1.5.4 desde jsDelivr cuando se solicitan. La conexión de salas usa PeerJS Cloud para señalización y WebRTC para enlazar los navegadores; por ello, el modo online necesita Internet y depende de un servicio externo. GitHub Pages aloja los archivos estáticos del juego, pero no ejecuta el servicio de señalización. No se guardan cuentas ni perfiles en un backend.
 

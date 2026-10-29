@@ -86,7 +86,7 @@
   let lastTime = 0;
   let hudTimer = 0;
   let cameraYaw = 0;
-  let cameraTilt = 29;
+  let cameraTilt = 21;
   let crystalsFound = 0;
   let pointerId = null;
   let lastPointerX = 0;
@@ -126,6 +126,10 @@
     const gridZ = Math.floor(z / CELL_SIZE);
     const hills = Math.sin(gridX * 0.21) + Math.cos(gridZ * 0.18) + Math.sin((gridX + gridZ) * 0.12);
     return THREE.MathUtils.clamp(Math.floor(1.7 + hills * 0.57 + hash(gridX, gridZ) * 0.8), 0, 3);
+  }
+
+  function groundAt(x, z) {
+    return 2 + heightAt(x, z) * 2 - 0.18;
   }
 
   function colorAt(hex, seed, amount = 0.09) {
@@ -239,6 +243,7 @@
     const wing = makeMaterial(wingColor, { roughness: 0.7, side: THREE.DoubleSide });
     const eye = makeMaterial(eyeColor, { emissive: eyeColor, emissiveIntensity: 0.55 });
     const white = makeMaterial('#fff9dc', { roughness: 0.35 });
+    const claw = makeMaterial(id === 0 ? '#dce4cb' : '#405667', { roughness: 0.5 });
 
     const markerColor = id === 0 ? '#ff985b' : '#85efff';
     const marker = new THREE.Mesh(
@@ -274,8 +279,11 @@
       const leg = new THREE.Group();
       leg.position.set(sign * 0.3, 0.48, sign < 0 ? 0.52 : -0.46);
       group.add(leg);
-      addBox(leg, darkMaterial, [0, -0.06, 0], [0.28, 0.38, 0.35]);
-      addBox(leg, body, [0, -0.22, -0.08], [0.36, 0.13, 0.46]);
+      addBox(leg, body, [0, -0.02, 0], [0.32, 0.4, 0.38]);
+      addBox(leg, darkMaterial, [0, -0.26, -0.08], [0.4, 0.16, 0.5]);
+      for (const toe of [-1, 0, 1]) {
+        addBox(leg, claw, [toe * 0.115, -0.3, -0.27], [0.075, 0.07, 0.1], false);
+      }
       group.userData[sign < 0 ? 'leftWing' : 'rightWing'] = wingRoot;
       group.userData[sign < 0 ? 'leftLeg' : 'rightLeg'] = leg;
     }
@@ -302,7 +310,7 @@
     group.scale.setScalar(1.22);
     const x = id === 0 ? -1.5 : 1.5;
     const z = 0;
-    group.position.set(x, heightAt(x, z) * 2 + 0.74, z);
+    group.position.set(x, groundAt(x, z), z);
 
     return {
       id,
@@ -861,7 +869,7 @@
     player.z += player.velocityZ * dt;
     player.grounded = false;
 
-    const floor = heightAt(player.x, player.z) * 2 + 0.74;
+    const floor = groundAt(player.x, player.z);
     if (input.fly) player.velocityY = Math.min(5.2, player.velocityY + 18 * dt);
     else player.velocityY -= 21 * dt;
     player.group.position.y += player.velocityY * dt;
@@ -932,7 +940,7 @@
     const midpointX = (players[0].x + players[1].x) / 2;
     const midpointZ = (players[0].z + players[1].z) / 2;
     const separation = Math.hypot(players[0].x - players[1].x, players[0].z - players[1].z);
-    const distance = THREE.MathUtils.clamp(15 + separation * 0.55, 15, 42);
+    const distance = THREE.MathUtils.clamp(14 + separation * 0.55, 14, 40);
     const pitch = THREE.MathUtils.degToRad(cameraTilt);
     const horizontal = Math.cos(pitch) * distance;
     const averageHeight = (players[0].group.position.y + players[1].group.position.y) / 2;
@@ -1088,8 +1096,8 @@
     if (event.pointerId !== pointerId) return;
     const deltaX = event.clientX - lastPointerX;
     const deltaY = event.clientY - lastPointerY;
-    cameraYaw -= deltaX * 0.006;
-    cameraTilt = THREE.MathUtils.clamp(cameraTilt + deltaY * 0.16, 12, 48);
+    cameraYaw -= deltaX * 0.008;
+    cameraTilt = THREE.MathUtils.clamp(cameraTilt + deltaY * 0.16, 8, 78);
     lastPointerX = event.clientX;
     lastPointerY = event.clientY;
   });
