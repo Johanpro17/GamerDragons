@@ -42,7 +42,7 @@ Selecciona **MUNDO 3D COOPERATIVO** y elige una modalidad:
 - **2 jugadores en el mismo dispositivo**: compartan el teclado o conecten dos mandos.
 - **Sala online**: el jugador 1 crea la sala y comparte el código de seis dígitos; el jugador 2 lo escribe para unirse desde otro dispositivo.
 
-El mundo de bloques se genera al avanzar. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse. La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
+El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean sobre los árboles y pequeños animales recorren las praderas; la fauna cambia de aspecto según la región y desaparece al alejarse para mantener el rendimiento. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse. La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
 
 | Jugador | Moverse | Saltar | Volar |
 | --- | --- | --- | --- |

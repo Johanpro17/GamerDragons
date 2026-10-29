@@ -56,12 +56,20 @@
   const UP = new THREE.Vector3(0, 1, 0);
   const tempObject = new THREE.Object3D();
   const tempColor = new THREE.Color();
+  const wildlifeGeometry = new THREE.BoxGeometry(1, 1, 1);
 
   const BIOMES = [
     { name: 'ISLAS DEL ALBA', ground: '#527b49', grass: '#78a953', soil: '#71543e', rock: '#777774', leaves: '#347147' },
     { name: 'BOSQUE ESMERALDA', ground: '#397760', grass: '#66aa82', soil: '#50463b', rock: '#617378', leaves: '#235c49' },
     { name: 'VALLE DE OBSIDIANA', ground: '#61565e', grass: '#997a6d', soil: '#403640', rock: '#302c39', leaves: '#624655' },
     { name: 'CUMBRES DE CRISTAL', ground: '#7795a0', grass: '#bbd7bd', soil: '#526475', rock: '#96b1c2', leaves: '#407f8d' }
+  ];
+
+  const WILDLIFE_COLORS = [
+    { bird: '#f5d477', belly: '#fff1cb', beak: '#ec8d49', animal: '#bd7044', dark: '#593c36' },
+    { bird: '#8fe0cc', belly: '#e5fff0', beak: '#e9a54c', animal: '#9b7655', dark: '#453d39' },
+    { bird: '#d8a8dc', belly: '#f8e8f4', beak: '#edaa6b', animal: '#b58a75', dark: '#52434c' },
+    { bird: '#d8edff', belly: '#ffffff', beak: '#eca35f', animal: '#d2e0e0', dark: '#586e7b' }
   ];
 
   const controls = [
@@ -103,6 +111,8 @@
   const chunks = new Map();
   const crystals = new Set();
   const clouds = [];
+  const wildlife = new Set();
+  let wildlifeMaterials = [];
   const players = [];
   const remoteStates = [null, null];
 
@@ -183,6 +193,13 @@
       roughness: 0.27,
       metalness: 0.16
     });
+    wildlifeMaterials = WILDLIFE_COLORS.map((colors) => ({
+      bird: makeMaterial(colors.bird, { roughness: 0.78 }),
+      belly: makeMaterial(colors.belly, { roughness: 0.88 }),
+      beak: makeMaterial(colors.beak, { roughness: 0.72 }),
+      animal: makeMaterial(colors.animal, { roughness: 0.92 }),
+      dark: makeMaterial(colors.dark, { roughness: 0.92 })
+    }));
 
     const hemisphere = new THREE.HemisphereLight('#e9fbff', '#53634d', 0.45);
     scene.add(hemisphere);
@@ -331,6 +348,142 @@
     array.push({ x, y, z, scale, color });
   }
 
+  function makeWildlifeBox(parent, material, position, size) {
+    const mesh = new THREE.Mesh(wildlifeGeometry, material);
+    mesh.position.set(...position);
+    mesh.scale.set(...size);
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    parent.add(mesh);
+    return mesh;
+  }
+
+  function createBird(x, y, z, materials, phase) {
+    const group = new THREE.Group();
+    group.scale.setScalar(2.2);
+    group.position.set(x, y, z);
+    makeWildlifeBox(group, materials.bird, [0, 0, 0], [0.42, 0.31, 0.72]);
+    makeWildlifeBox(group, materials.belly, [0, -0.1, -0.09], [0.31, 0.14, 0.47]);
+    makeWildlifeBox(group, materials.bird, [0, 0.16, -0.34], [0.3, 0.3, 0.3]);
+    makeWildlifeBox(group, materials.beak, [0, 0.1, -0.55], [0.11, 0.09, 0.18]);
+
+    const wings = [];
+    for (const sign of [-1, 1]) {
+      const pivot = new THREE.Group();
+      pivot.position.set(sign * 0.16, 0.08, 0.02);
+      group.add(pivot);
+      makeWildlifeBox(pivot, materials.bird, [sign * 0.34, 0, 0.02], [0.72, 0.1, 0.32]);
+      wings.push(pivot);
+    }
+
+    scene.add(group);
+    const bird = {
+      type: 'bird',
+      group,
+      wings,
+      originX: x,
+      originY: y,
+      originZ: z,
+      phase,
+      speed: 0.38 + hash(x, z) * 0.3,
+      radius: 2.4 + hash(z, x) * 3.4
+    };
+    wildlife.add(bird);
+    return bird;
+  }
+
+  function createGroundAnimal(x, z, materials, phase, scale) {
+    const group = new THREE.Group();
+    group.scale.setScalar(scale);
+    makeWildlifeBox(group, materials.animal, [0, 0.48, 0], [0.53, 0.43, 0.78]);
+    makeWildlifeBox(group, materials.belly, [0, 0.4, -0.1], [0.38, 0.27, 0.42]);
+    makeWildlifeBox(group, materials.animal, [0, 0.65, -0.43], [0.37, 0.4, 0.38]);
+    makeWildlifeBox(group, materials.dark, [-0.12, 0.72, -0.6], [0.055, 0.07, 0.045]);
+    makeWildlifeBox(group, materials.dark, [0.12, 0.72, -0.6], [0.055, 0.07, 0.045]);
+    makeWildlifeBox(group, materials.belly, [0, 0.59, -0.63], [0.17, 0.13, 0.14]);
+    makeWildlifeBox(group, materials.belly, [0, 0.85, 0.38], [0.2, 0.2, 0.2]);
+
+    const legs = [];
+    for (const side of [-1, 1]) {
+      for (const end of [-1, 1]) {
+        const leg = new THREE.Group();
+        leg.position.set(side * 0.17, 0.36, end * 0.24);
+        group.add(leg);
+        makeWildlifeBox(leg, materials.animal, [0, -0.16, 0], [0.13, 0.4, 0.15]);
+        makeWildlifeBox(leg, materials.dark, [0, -0.34, -0.015], [0.16, 0.09, 0.2]);
+        legs.push(leg);
+      }
+    }
+
+    const floor = groundAt(x, z);
+    group.position.set(x, floor + 0.18, z);
+    scene.add(group);
+    const animal = {
+      type: 'animal',
+      group,
+      legs,
+      originX: x,
+      originZ: z,
+      floor,
+      phase,
+      speed: 0.18 + hash(x, z + 19) * 0.2,
+      radius: 0.9 + hash(z - 7, x + 3) * 1.6
+    };
+    wildlife.add(animal);
+    return animal;
+  }
+
+  function createChunkWildlife(chunkX, chunkZ, biome) {
+    const creatures = [];
+    const originX = chunkX * CHUNK_SIZE;
+    const originZ = chunkZ * CHUNK_SIZE;
+    const biomeIndex = BIOMES.indexOf(biome);
+    const materials = wildlifeMaterials[biomeIndex];
+    const seed = hash(chunkX + 401, chunkZ - 271);
+    const animalSeed = hash(chunkX - 181, chunkZ + 397);
+
+    if (seed > 0.84 || (chunkX === 0 && chunkZ === -1)) {
+      const startingFlock = chunkX === 0 && chunkZ === -1;
+      const x = startingFlock
+        ? 2
+        : originX + 5 + hash(chunkX + 13, chunkZ + 31) * (CHUNK_SIZE - 10);
+      const z = startingFlock
+        ? -9
+        : originZ + 5 + hash(chunkX - 17, chunkZ + 7) * (CHUNK_SIZE - 10);
+      const y = groundAt(x, z) + 2.7 + hash(x + 2, z - 5) * 1.6;
+      const count = startingFlock || seed > 0.91 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        const offset = (i - (count - 1) / 2) * 1.8;
+        creatures.push(createBird(
+          x + offset,
+          y + hash(x + i, z - i) * 0.8,
+          z + offset * 0.55,
+          materials,
+          hash(x + 23 + i, z - 19) * Math.PI * 2
+        ));
+      }
+    }
+
+    if (animalSeed > 0.9 || (chunkX === -1 && chunkZ === -1)) {
+      const startingAnimal = chunkX === -1 && chunkZ === -1;
+      const x = startingAnimal
+        ? -7
+        : originX + 6 + hash(chunkX + 43, chunkZ - 23) * (CHUNK_SIZE - 12);
+      const z = startingAnimal
+        ? -7
+        : originZ + 6 + hash(chunkX - 37, chunkZ + 29) * (CHUNK_SIZE - 12);
+      creatures.push(createGroundAnimal(
+        x,
+        z,
+        materials,
+        hash(x - 11, z + 17) * Math.PI * 2,
+        startingAnimal ? 1.5 : 1 + hash(chunkX + 61, chunkZ + 3) * 0.22
+      ));
+    }
+
+    return creatures;
+  }
+
   function createChunk(chunkX, chunkZ) {
     const key = chunkX + ',' + chunkZ;
     if (chunks.has(key)) return;
@@ -339,6 +492,7 @@
     const leaves = [];
     const trunks = [];
     const chunkCrystals = [];
+    const chunkWildlife = [];
     const chunkCenterZ = chunkZ * CHUNK_SIZE + CHUNK_SIZE / 2;
     const biome = biomeAt(chunkX * CHUNK_SIZE + CHUNK_SIZE / 2, chunkCenterZ);
 
@@ -397,8 +551,15 @@
     const terrain = makeChunkMesh(blocks, terrainMaterial);
     const foliage = makeChunkMesh(leaves, foliageMaterial);
     const trunksMesh = makeChunkMesh(trunks, trunkMaterial);
+    chunkWildlife.push(...createChunkWildlife(chunkX, chunkZ, biome));
     scene.add(terrain, foliage, trunksMesh);
-    chunks.set(key, { chunkX, chunkZ, meshes: [terrain, foliage, trunksMesh], crystals: chunkCrystals });
+    chunks.set(key, {
+      chunkX,
+      chunkZ,
+      meshes: [terrain, foliage, trunksMesh],
+      crystals: chunkCrystals,
+      wildlife: chunkWildlife
+    });
   }
 
   function makeChunkMesh(instances, material) {
@@ -451,6 +612,10 @@
       for (const crystal of chunk.crystals) {
         scene.remove(crystal);
         crystals.delete(crystal);
+      }
+      for (const creature of chunk.wildlife) {
+        scene.remove(creature.group);
+        wildlife.delete(creature);
       }
       chunks.delete(key);
     }
@@ -978,6 +1143,37 @@
     }
   }
 
+  function updateWildlife(elapsed, dt) {
+    for (const creature of wildlife) {
+      const angle = elapsed * creature.speed + creature.phase;
+      if (creature.type === 'bird') {
+        creature.group.position.set(
+          creature.originX + Math.cos(angle) * creature.radius,
+          creature.originY + Math.sin(angle * 1.7) * 1.15,
+          creature.originZ + Math.sin(angle) * creature.radius
+        );
+        creature.group.rotation.y = Math.atan2(Math.sin(angle), -Math.cos(angle));
+        const flap = Math.sin(elapsed * 8 + creature.phase) * 0.72;
+        creature.wings[0].rotation.z = -flap;
+        creature.wings[1].rotation.z = flap;
+        continue;
+      }
+
+      const nextX = creature.originX + Math.cos(angle) * creature.radius;
+      const nextZ = creature.originZ + Math.sin(angle) * creature.radius;
+      const directionX = nextX - creature.group.position.x;
+      const directionZ = nextZ - creature.group.position.z;
+      creature.floor = groundAt(nextX, nextZ);
+      creature.group.position.set(nextX, creature.floor + 0.18 + Math.abs(Math.sin(angle * 8)) * 0.045, nextZ);
+      creature.group.rotation.y = Math.atan2(-directionX, -directionZ);
+      const step = Math.sin(elapsed * 9 + creature.phase) * Math.min(0.55, dt * 10);
+      creature.legs[0].rotation.x = step;
+      creature.legs[3].rotation.x = step;
+      creature.legs[1].rotation.x = -step;
+      creature.legs[2].rotation.x = -step;
+    }
+  }
+
   function updateCrystals(elapsed, dt) {
     for (const crystal of crystals) {
       crystal.rotation.y += dt * 1.4;
@@ -1026,6 +1222,7 @@
     const center = updateCamera(dt);
     buildNearbyChunks();
     updateClouds(elapsed);
+    updateWildlife(elapsed, dt);
     updateCrystals(elapsed, dt);
 
     hudTimer += dt;
@@ -1153,6 +1350,15 @@
       return players.map(({ id, x, z, grounded, group }) => ({ id, x, y: group.position.y, z, grounded }));
     },
     get chunkCount() { return chunks.size; },
+    get wildlifeCount() {
+      let birds = 0;
+      let animals = 0;
+      for (const creature of wildlife) {
+        if (creature.type === 'bird') birds += 1;
+        else animals += 1;
+      }
+      return { birds, animals, total: wildlife.size };
+    },
     get isOpen() { return isOpen; },
     get network() {
       return {
@@ -1175,6 +1381,7 @@
       const center = updateCamera(dt);
       buildNearbyChunks();
       updateClouds(elapsed);
+      updateWildlife(elapsed, dt);
       updateCrystals(elapsed, dt);
       return center;
     }
