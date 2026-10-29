@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=7">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐉</text></svg>">
 </head>
 <body>
@@ -39,8 +39,9 @@
       <div class="row row--menu">
         <button class="btn btn--play" data-action="start">▶ JUGAR</button>
         <button class="btn btn--adv" id="btnAdventure" type="button">◆ AVENTURA</button>
+        <button class="btn btn--world" id="btnWorld" type="button">▣ MUNDO 3D COOPERATIVO</button>
       </div>
-      <p class="menu-note">Explora un mundo inmenso, vuela por cuatro regiones y cuida a tus dragones.</p>
+      <p class="menu-note">Invita a un amigo a explorar y moveros juntos por un mundo de dragones.</p>
       <ul class="keys">
         <li><kbd>ESPACIO</kbd><span>aletear</span></li>
         <li><kbd>X</kbd><span>escupir fuego</span></li>
@@ -252,7 +253,85 @@
   </div>
 </section>
 
+<section class="world3d" id="world3d" aria-hidden="true" aria-label="Mundo 3D cooperativo de dragones">
+  <canvas id="worldCanvas" aria-label="Mundo tridimensional de bloques para explorar con dos dragones"></canvas>
+  <div class="world3d__shade" aria-hidden="true"></div>
+  <section class="world3d__lobby" id="worldLobby" role="dialog" aria-modal="true" aria-labelledby="worldLobbyTitle">
+    <div class="world3d__lobby-card">
+      <p class="world3d__eyebrow">◆ elige tu aventura ◆</p>
+      <h2 class="world3d__title" id="worldLobbyTitle">¿CÓMO QUIERES JUGAR?</h2>
+      <button class="world3d__lobby-button" id="worldBotStart" type="button">1 JUGADOR + BOT</button>
+      <button class="world3d__lobby-button" id="worldLocalStart" type="button">2 JUGADORES · MISMO DISPOSITIVO</button>
+      <div class="world3d__lobby-divider">O JUEGA EN LÍNEA</div>
+      <button class="world3d__lobby-button world3d__lobby-button--online" id="worldCreateRoom" type="button">CREAR SALA Y COMPARTIR CÓDIGO</button>
+      <form class="world3d__join" id="worldJoinForm">
+        <label for="worldRoomCode">¿TIENES UN CÓDIGO?</label>
+        <div>
+          <input id="worldRoomCode" name="roomCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" aria-label="Código de sala de seis dígitos" required>
+          <button class="world3d__lobby-button" type="submit">UNIRME</button>
+        </div>
+      </form>
+      <p class="world3d__lobby-note">Las salas online necesitan Internet en los dos dispositivos.</p>
+      <p class="world3d__network-status" id="worldNetworkStatus" role="status" aria-live="polite"></p>
+      <button class="world3d__lobby-back" id="worldLobbyBack" type="button">VOLVER AL MENÚ</button>
+    </div>
+  </section>
+  <section class="world3d__invite" id="worldInvite" role="dialog" aria-modal="true" aria-labelledby="worldInviteTitle" hidden>
+    <div class="world3d__invite-card">
+      <h2 class="world3d__title" id="worldInviteTitle">INVITA A OTRO JUGADOR</h2>
+      <p>Escribe este código en su dispositivo:</p>
+      <output class="world3d__invite-code" id="worldInviteCode"></output>
+      <p class="world3d__network-status" id="worldInviteStatus" role="status" aria-live="polite">Esperando al jugador 2…</p>
+      <button class="world3d__lobby-back" id="worldInviteCancel" type="button">CANCELAR SALA</button>
+    </div>
+  </section>
+  <header class="world3d__header">
+    <div>
+      <p class="world3d__eyebrow" id="worldModeLabel">MODO EXPLORACIÓN</p>
+      <h2 class="world3d__title">TIERRAS DE LOS DRAGONES</h2>
+      <p class="world3d__sub">Un mundo de bloques para explorar y volar con dragones.</p>
+    </div>
+    <div class="world3d__status">
+      <span class="world3d__badge" id="worldRegion">ISLAS DEL ALBA</span>
+      <span class="world3d__badge" id="worldPosition">X 0 · Z 0</span>
+      <button class="world3d__exit" id="worldExit" type="button">SALIR <kbd>ESC</kbd></button>
+    </div>
+  </header>
+  <div class="world3d__legend" aria-live="polite">
+    <span><i class="world3d__dot world3d__dot--one"></i> JUGADOR 1</span>
+    <span><i class="world3d__dot world3d__dot--two"></i> JUGADOR 2</span>
+    <span id="worldHint">W A S D + ESPACIO <b>·</b> FLECHAS + ENTER</span>
+  </div>
+  <div class="world3d__pads" id="worldPads" aria-label="Controles táctiles para dos jugadores">
+    <div class="world3d__pad" data-player="0">
+      <b class="world3d__pad-label">JUGADOR 1</b>
+      <div class="world3d__dpad">
+        <button type="button" data-move="forward" aria-label="Jugador 1, avanzar">▲</button>
+        <button type="button" data-move="left" aria-label="Jugador 1, izquierda">◀</button>
+        <button type="button" data-move="back" aria-label="Jugador 1, retroceder">▼</button>
+        <button type="button" data-move="right" aria-label="Jugador 1, derecha">▶</button>
+      </div>
+      <button class="world3d__jump" type="button" data-move="jump">SALTAR</button>
+      <button class="world3d__fly" type="button" data-move="fly">VOLAR</button>
+    </div>
+    <div class="world3d__pad" data-player="1">
+      <b class="world3d__pad-label">JUGADOR 2</b>
+      <div class="world3d__dpad">
+        <button type="button" data-move="forward" aria-label="Jugador 2, avanzar">▲</button>
+        <button type="button" data-move="left" aria-label="Jugador 2, izquierda">◀</button>
+        <button type="button" data-move="back" aria-label="Jugador 2, retroceder">▼</button>
+        <button type="button" data-move="right" aria-label="Jugador 2, derecha">▶</button>
+      </div>
+      <button class="world3d__jump" type="button" data-move="jump">SALTAR</button>
+      <button class="world3d__fly" type="button" data-move="fly">VOLAR</button>
+    </div>
+  </div>
+  <p class="world3d__loading" id="worldLoading" role="status">CREANDO EL MUNDO DE BLOQUES…</p>
+</section>
+
 <script src="game.js?v=2"></script>
 <script src="adventure.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="world3d.js?v=16"></script>
 </body>
 </html>

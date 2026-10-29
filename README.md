@@ -12,6 +12,10 @@ Juego de vuelo arcade y aventura de dragones hecho con HTML5 Canvas puro. Sin fr
 
 No hace falta base de datos ni PHP: son archivos estáticos.
 
+## Publicar en GitHub Pages
+
+El workflow [deploy-pages.yml](./.github/workflows/deploy-pages.yml) publica el sitio al subir cambios a `main`. La primera vez, en GitHub abre **Settings → Pages** y selecciona **GitHub Actions** como fuente de publicación. Cuando termine la acción, el juego estará en `https://johanpro17.github.io/GamerDragons/`.
+
 ## Controles
 
 | Acción | Teclado | Ratón / táctil |
@@ -29,6 +33,25 @@ Entra en **AVENTURA** para cuidar a Chimuelo y a la Furia Luminosa, mejorar su v
 - **Vuelo y obstáculos**: pulsa `Espacio`, `W` o `↑` para aletear. Recoge peces y cruza aros para conseguir recompensas; esquiva rocas. También puedes pulsar el botón **ALETEAR** o tocar el lienzo.
 - **Progreso**: cada vuelo consume energía y fortalece el vínculo. El HUD indica la región, el avance, la distancia, los peces y los impactos recibidos.
 - **Animación y renderizado**: la aventura se dibuja en Canvas 2D a resolución doble y usa capas con paralaje, iluminación y perspectiva para dar profundidad sin dependencias externas.
+
+## Mundo 3D: bot, cooperativo y salas online
+
+Selecciona **MUNDO 3D COOPERATIVO** y elige una modalidad:
+
+- **1 jugador + bot**: explora con un compañero que sigue al jugador 1.
+- **2 jugadores en el mismo dispositivo**: compartan el teclado o conecten dos mandos.
+- **Sala online**: el jugador 1 crea la sala y comparte el código de seis dígitos; el jugador 2 lo escribe para unirse desde otro dispositivo.
+
+El mundo de bloques se genera al avanzar. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse. La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
+
+| Jugador | Moverse | Saltar | Volar |
+| --- | --- | --- | --- |
+| 1 | `W`, `A`, `S`, `D` | `Espacio` | Mantén `F` |
+| 2 | `↑`, `←`, `↓`, `→` | `Enter` | Mantén `R` |
+
+En pantallas táctiles, mantén **VOLAR** para subir. También se admiten dos gamepads y controles táctiles separados para cada jugador. Arrastra el ratón o el dedo sobre el mundo para girar la cámara, y usa `Esc` para volver al menú.
+
+El renderer 3D usa Three.js 0.149.0 y las salas cargan PeerJS 1.5.4 desde jsDelivr cuando se solicitan. La conexión de salas usa PeerJS Cloud para señalización y WebRTC para enlazar los navegadores; por ello, el modo online necesita Internet y depende de un servicio externo. GitHub Pages aloja los archivos estáticos del juego, pero no ejecuta el servicio de señalización. No se guardan cuentas ni perfiles en un backend.
 
 ## Mecánicas
 
@@ -48,6 +71,7 @@ JuegoDragon/
 ├── style.css    Marco arcade, scanlines, tipografías y diseño responsive
 ├── game.js      Motor completo (estado, física, arte, audio, entrada)
 ├── adventure.js Santuario, progresión de dragones y misiones de exploración
+├── world3d.js   Mundo 3D procedural, bot, salas online y controles
 └── README.md
 ```
 
