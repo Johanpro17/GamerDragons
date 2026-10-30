@@ -1,0 +1,370 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Dragón de Fuego: arcade 8 bits de vuelo infinito. Aletea, escupe fuego, recoge gemas y cruza cuatro zonas ardientes.">
+<meta name="theme-color" content="#0a0612">
+<title>Dragón de Fuego — Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=9">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐉</text></svg>">
+</head>
+<body>
+
+<main class="stage">
+  <header class="marquee">
+    <span class="marquee__dot" aria-hidden="true"></span>
+    <h1 class="marquee__title">DRAGÓN DE FUEGO</h1>
+    <span class="marquee__hint">ARCADE · 1 JUGADOR</span>
+  </header>
+
+  <div class="frame" id="frame">
+    <canvas id="game" width="480" height="270" aria-label="Juego arcade de un dragón que vuela sobre montañas"></canvas>
+    <div class="fx scanlines" aria-hidden="true"></div>
+    <div class="fx vignette" aria-hidden="true"></div>
+
+    <div class="frame__actions">
+      <button class="icon-btn" id="btnPause" data-action="pause" aria-label="Pausar" title="Pausa (P)">II</button>
+      <button class="icon-btn" id="btnMute" data-action="mute" aria-label="Silenciar sonido" title="Sonido (M)">♪</button>
+    </div>
+
+    <!-- TÍTULO -->
+    <section class="screen screen--title is-open" id="screenTitle">
+      <p class="eyebrow">◆ 8 bits · edición volcánica ◆</p>
+      <h2 class="logo">DRAGÓN<br><span>DE FUEGO</span></h2>
+      <p class="tagline">Cruza las cumbres ardientes, esquiva la roca<br>y quema a todo lo que se atreva a volar.</p>
+      <div class="row row--menu">
+        <button class="btn btn--play" data-action="start">▶ JUGAR</button>
+        <button class="btn btn--adv" id="btnAdventure" type="button">◆ AVENTURA</button>
+        <button class="btn btn--world" id="btnWorld" type="button">▣ MUNDO 3D COOPERATIVO</button>
+      </div>
+      <p class="menu-note">Invita a un amigo a explorar y moveros juntos por un mundo de dragones.</p>
+      <ul class="keys">
+        <li><kbd>ESPACIO</kbd><span>aletear</span></li>
+        <li><kbd>X</kbd><span>escupir fuego</span></li>
+        <li><kbd>P</kbd><span>pausa</span></li>
+      </ul>
+      <p class="record">RÉCORD <strong id="titleBest">000000</strong></p>
+    </section>
+
+    <!-- PAUSA -->
+    <section class="screen" id="screenPause">
+      <p class="eyebrow">◆ en pausa ◆</p>
+      <h2 class="screen__title">PAUSA</h2>
+      <p class="screen__sub">El dragón recupera el aliento…</p>
+      <div class="row">
+        <button class="btn" data-action="resume">CONTINUAR</button>
+        <button class="btn btn--ghost" data-action="restart">REINICIAR</button>
+      </div>
+      <p class="hint-small">PULSA P PARA CONTINUAR</p>
+    </section>
+
+    <!-- GAME OVER -->
+    <section class="screen" id="screenOver">
+      <p class="eyebrow">◆ fin de la travesía ◆</p>
+      <h2 class="screen__title">EL DRAGÓN CAYÓ</h2>
+      <div class="stats">
+        <div><span>PUNTOS</span><strong id="overScore">0</strong></div>
+        <div><span>DISTANCIA</span><strong id="overDist">0 m</strong></div>
+        <div><span>RÉCORD</span><strong id="overBest">0</strong></div>
+      </div>
+      <p class="record record--new" id="newRecord" hidden>¡NUEVO RÉCORD!</p>
+      <div class="row">
+        <button class="btn" data-action="start">OTRA VEZ</button>
+      </div>
+      <p class="hint-small">PULSA ESPACIO PARA REINTENTAR</p>
+    </section>
+
+    <!-- CONTROLES TÁCTILES -->
+    <div class="touch" id="touchControls">
+      <button class="touch__btn" id="btnFire" aria-label="Escupir fuego">
+        <span class="touch__icon">🔥</span><span>FUEGO</span>
+      </button>
+      <button class="touch__btn touch__btn--flap" id="btnFlap" aria-label="Aletear">
+        <span class="touch__icon">🪽</span><span>ALETEAR</span>
+      </button>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span><kbd>ESPACIO</kbd> aletear</span>
+    <span><kbd>X</kbd> fuego</span>
+    <span><kbd>P</kbd> pausa</span>
+    <span><kbd>M</kbd> sonido</span>
+    <span class="foot__spacer"></span>
+    <span class="foot__best">RÉCORD <b id="footBest">000000</b></span>
+  </footer>
+</main>
+
+<!-- ============================================================
+     MODO AVENTURA — SANTUARIO DE DRAGONES
+     ============================================================ -->
+<section class="adv" id="adventure" aria-hidden="true" aria-label="Santuario de dragones">
+  <div class="adv__inner">
+    <header class="adv__top">
+      <div class="adv__brand">
+        <p class="adv__eyebrow">◆ modo aventura ◆</p>
+        <h2 class="adv__title">SANTUARIO DE DRAGONES</h2>
+        <p class="adv__sub" id="advSub">Chimuelo y la Furia Luminosa viven junto al mar.</p>
+      </div>
+      <div class="adv__meta">
+        <span class="adv__chip" id="advDay">DÍA 1</span>
+        <span class="adv__chip adv__chip--fish" title="Peces en la cesta">🐟 <b id="advFish">3</b></span>
+        <button class="adv__icon" id="advMute" type="button" aria-label="Silenciar sonido" title="Sonido (M)">♪</button>
+        <button class="adv__icon" id="advClose" type="button" aria-label="Volver al menú" title="Volver al menú">✕</button>
+      </div>
+    </header>
+
+    <div class="adv__grid">
+      <section class="adv__scene">
+        <canvas id="advScene" width="960" height="540"
+          aria-label="Chimuelo y la Furia Luminosa descansan en un acantilado al atardecer"></canvas>
+        <div class="adv__scan" aria-hidden="true"></div>
+        <div class="adv__bubble" id="advBubble" role="status" aria-live="polite"></div>
+        <div class="adv__pickers">
+          <button class="adv__pick is-active" id="pickToothless" type="button" data-dragon="toothless">
+            <span class="adv__pick-name">CHIMUELO</span>
+            <span class="adv__pick-info">
+              <span id="pickToothlessText">Vínculo 8%</span>
+              <span class="adv__hearts" id="pickToothlessHearts"></span>
+            </span>
+          </button>
+          <button class="adv__pick" id="pickLight" type="button" data-dragon="light">
+            <span class="adv__pick-name">FURIA LUMINOSA</span>
+            <span class="adv__pick-info">
+              <span id="pickLightText">Vínculo 6%</span>
+              <span class="adv__hearts" id="pickLightHearts"></span>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="adv__panel">
+        <div class="adv__who">
+          <div>
+            <h3 class="adv__name" id="advName">CHIMUELO</h3>
+            <p class="adv__desc" id="advDesc">Furia Nocturna · curioso y leal</p>
+          </div>
+          <span class="adv__level" id="advLevel">Nv. 1</span>
+        </div>
+
+        <div class="adv__stats">
+          <div class="adv__stat">
+            <span>HAMBRE</span>
+            <div class="adv__bar"><i id="barHunger"></i></div>
+            <b id="valHunger">82</b>
+          </div>
+          <div class="adv__stat">
+            <span>ÁNIMO</span>
+            <div class="adv__bar"><i id="barMood"></i></div>
+            <b id="valMood">78</b>
+          </div>
+          <div class="adv__stat">
+            <span>ENERGÍA</span>
+            <div class="adv__bar adv__bar--energy"><i id="barEnergy"></i></div>
+            <b id="valEnergy">88</b>
+          </div>
+          <div class="adv__stat">
+            <span>VÍNCULO</span>
+            <div class="adv__bar adv__bar--bond"><i id="barBond"></i></div>
+            <b id="valBond">8%</b>
+          </div>
+        </div>
+
+        <div class="adv__tricks">
+          <p class="adv__label">TRUCOS</p>
+          <ul id="advTricks"></ul>
+        </div>
+
+        <div class="adv__actions">
+          <button class="adv__act" id="actFeed" type="button">
+            <span class="adv__act-icon">🐟</span><span>ALIMENTAR</span><small>1 pez</small>
+          </button>
+          <button class="adv__act" id="actPet" type="button">
+            <span class="adv__act-icon">♥</span><span>ACARICIAR</span><small>gratis</small>
+          </button>
+          <button class="adv__act" id="actTrain" type="button">
+            <span class="adv__act-icon">◎</span><span>ENTRENAR</span><small>18 energía</small>
+          </button>
+          <button class="adv__act" id="actFly" type="button">
+            <span class="adv__act-icon">▲</span><span>VOLAR</span><small>22 energía</small>
+          </button>
+          <button class="adv__act adv__act--rest" id="actRest" type="button">
+            <span class="adv__act-icon">☾</span><span>DESCANSAR</span><small>pasa el día</small>
+          </button>
+        </div>
+
+        <p class="adv__hint" id="advHint">Alimenta, acaricia y entrena para ganarte su confianza.</p>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ENTRENAMIENTO -->
+  <div class="adv-modal" id="advTrainModal" role="dialog" aria-modal="true" aria-labelledby="trainTitle" hidden>
+    <div class="adv-card">
+      <p class="adv-card__eyebrow">◆ entrenamiento ◆</p>
+      <h3 class="adv-card__title" id="trainTitle">ACARICIAR EL VIENTO</h3>
+      <p class="adv-card__sub" id="trainSub">Pulsa cuando la marca cruce la zona dorada.</p>
+      <div class="train__track">
+        <span class="train__zone"></span>
+        <span class="train__perfect"></span>
+        <span class="train__marker" id="trainMarker"></span>
+      </div>
+      <div class="train__rounds" id="trainRounds" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <button class="btn btn--play" id="trainHit" type="button">¡AHORA!</button>
+      <p class="adv-card__hint">ESPACIO o clic · 3 intentos</p>
+      <button class="adv-card__cancel" id="trainCancel" type="button">CANCELAR</button>
+    </div>
+  </div>
+
+  <!-- MISIÓN DE VUELO -->
+  <div class="adv-modal" id="advFlyModal" role="dialog" aria-modal="true" aria-labelledby="flyTitle" hidden>
+    <div class="adv-card adv-card--wide">
+      <div class="adv-card__head">
+        <div>
+          <p class="adv-card__eyebrow">◆ misión de vuelo ◆</p>
+          <h3 class="adv-card__title" id="flyTitle">ACANTILADOS DEL ALBA</h3>
+        </div>
+        <button class="adv__icon" id="flyAbort" type="button" aria-label="Abortar misión">✕</button>
+      </div>
+      <canvas id="advFly" width="960" height="540"
+        aria-label="Vuelo por los acantilados recogiendo peces y aros"></canvas>
+      <div class="adv-card__foot">
+        <p class="adv-card__sub" id="flySub">Recoge peces y cruza los aros dorados.</p>
+        <button class="btn" id="flyFlap" type="button">ALETEAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="adv-modal" id="advResult" role="dialog" aria-modal="true" aria-labelledby="resultTitle" hidden>
+    <div class="adv-card">
+      <p class="adv-card__eyebrow" id="resultEyebrow">◆ misión completada ◆</p>
+      <h3 class="adv-card__title" id="resultTitle">¡BUEN VUELO!</h3>
+      <div class="result__grid" id="resultGrid"></div>
+      <p class="adv-card__sub" id="resultText"></p>
+      <button class="btn btn--play" id="resultClose" type="button">VOLVER AL SANTUARIO</button>
+    </div>
+  </div>
+</section>
+
+<section class="world3d" id="world3d" aria-hidden="true" aria-label="Mundo 3D cooperativo de dragones">
+  <canvas id="worldCanvas" aria-label="Mundo tridimensional de bloques para explorar con dos dragones"></canvas>
+  <div class="world3d__shade" aria-hidden="true"></div>
+  <section class="world3d__lobby" id="worldLobby" role="dialog" aria-modal="true" aria-labelledby="worldLobbyTitle">
+    <div class="world3d__lobby-card">
+      <p class="world3d__eyebrow">◆ elige tu aventura ◆</p>
+      <h2 class="world3d__title" id="worldLobbyTitle">¿CÓMO QUIERES JUGAR?</h2>
+      <div class="world3d__character-select" aria-label="Elige el aspecto de cada dragón">
+        <fieldset class="world3d__character-player">
+          <legend>JUGADOR 1</legend>
+          <div class="world3d__character-options">
+            <button class="world3d__character-option is-selected" type="button" data-player="0" data-character="toothless" aria-pressed="true">
+              <span class="world3d__dragon-preview world3d__dragon-preview--toothless" aria-hidden="true"></span>
+              <span>CHIMUELO</span>
+              <small>NEGRO</small>
+            </button>
+            <button class="world3d__character-option" type="button" data-player="0" data-character="light" aria-pressed="false">
+              <span class="world3d__dragon-preview world3d__dragon-preview--light" aria-hidden="true"></span>
+              <span>FURIA LUMINOSA</span>
+              <small>BLANCA</small>
+            </button>
+          </div>
+        </fieldset>
+        <fieldset class="world3d__character-player">
+          <legend>JUGADOR 2</legend>
+          <div class="world3d__character-options">
+            <button class="world3d__character-option" type="button" data-player="1" data-character="toothless" aria-pressed="false">
+              <span class="world3d__dragon-preview world3d__dragon-preview--toothless" aria-hidden="true"></span>
+              <span>CHIMUELO</span>
+              <small>NEGRO</small>
+            </button>
+            <button class="world3d__character-option is-selected" type="button" data-player="1" data-character="light" aria-pressed="true">
+              <span class="world3d__dragon-preview world3d__dragon-preview--light" aria-hidden="true"></span>
+              <span>FURIA LUMINOSA</span>
+              <small>BLANCA</small>
+            </button>
+          </div>
+        </fieldset>
+      </div>
+      <p class="world3d__lobby-note">Elige un aspecto para cada jugador. En modo bot, el compañero tendrá el otro dragón.</p>
+      <button class="world3d__lobby-button" id="worldBotStart" type="button">1 JUGADOR + BOT</button>
+      <button class="world3d__lobby-button" id="worldLocalStart" type="button">2 JUGADORES · MISMO DISPOSITIVO</button>
+      <div class="world3d__lobby-divider">O JUEGA EN LÍNEA</div>
+      <button class="world3d__lobby-button world3d__lobby-button--online" id="worldCreateRoom" type="button">CREAR SALA Y COMPARTIR CÓDIGO</button>
+      <form class="world3d__join" id="worldJoinForm">
+        <label for="worldRoomCode">¿TIENES UN CÓDIGO?</label>
+        <div>
+          <input id="worldRoomCode" name="roomCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="123456" aria-label="Código de sala de seis dígitos" required>
+          <button class="world3d__lobby-button" type="submit">UNIRME</button>
+        </div>
+      </form>
+      <p class="world3d__lobby-note">Las salas online necesitan Internet en los dos dispositivos.</p>
+      <p class="world3d__network-status" id="worldNetworkStatus" role="status" aria-live="polite"></p>
+      <button class="world3d__lobby-back" id="worldLobbyBack" type="button">VOLVER AL MENÚ</button>
+    </div>
+  </section>
+  <section class="world3d__invite" id="worldInvite" role="dialog" aria-modal="true" aria-labelledby="worldInviteTitle" hidden>
+    <div class="world3d__invite-card">
+      <h2 class="world3d__title" id="worldInviteTitle">INVITA A OTRO JUGADOR</h2>
+      <p>Escribe este código en su dispositivo:</p>
+      <output class="world3d__invite-code" id="worldInviteCode"></output>
+      <p class="world3d__network-status" id="worldInviteStatus" role="status" aria-live="polite">Esperando al jugador 2…</p>
+      <button class="world3d__lobby-back" id="worldInviteCancel" type="button">CANCELAR SALA</button>
+    </div>
+  </section>
+  <header class="world3d__header">
+    <div>
+      <p class="world3d__eyebrow" id="worldModeLabel">MODO EXPLORACIÓN</p>
+      <h2 class="world3d__title">TIERRAS DE LOS DRAGONES</h2>
+      <p class="world3d__sub">Un mundo de bloques para explorar y volar · arrastra para girar la cámara 360°.</p>
+    </div>
+    <div class="world3d__status">
+      <span class="world3d__badge" id="worldRegion">ISLAS DEL ALBA</span>
+      <span class="world3d__badge" id="worldPosition">X 0 · Z 0</span>
+      <button class="world3d__exit" id="worldExit" type="button">SALIR <kbd>ESC</kbd></button>
+    </div>
+  </header>
+  <div class="world3d__legend" aria-live="polite">
+    <span><i class="world3d__dot world3d__dot--one"></i> JUGADOR 1</span>
+    <span><i class="world3d__dot world3d__dot--two"></i> JUGADOR 2</span>
+    <span id="worldHint">W A S D + ESPACIO <b>·</b> FLECHAS + ENTER</span>
+  </div>
+  <div class="world3d__pads" id="worldPads" aria-label="Controles táctiles para dos jugadores">
+    <div class="world3d__pad" data-player="0">
+      <b class="world3d__pad-label">JUGADOR 1</b>
+      <div class="world3d__dpad">
+        <button type="button" data-move="forward" aria-label="Jugador 1, avanzar">▲</button>
+        <button type="button" data-move="left" aria-label="Jugador 1, izquierda">◀</button>
+        <button type="button" data-move="back" aria-label="Jugador 1, retroceder">▼</button>
+        <button type="button" data-move="right" aria-label="Jugador 1, derecha">▶</button>
+      </div>
+      <button class="world3d__jump" type="button" data-move="jump">SALTAR</button>
+      <button class="world3d__fly" type="button" data-move="fly">VOLAR</button>
+    </div>
+    <div class="world3d__pad" data-player="1">
+      <b class="world3d__pad-label">JUGADOR 2</b>
+      <div class="world3d__dpad">
+        <button type="button" data-move="forward" aria-label="Jugador 2, avanzar">▲</button>
+        <button type="button" data-move="left" aria-label="Jugador 2, izquierda">◀</button>
+        <button type="button" data-move="back" aria-label="Jugador 2, retroceder">▼</button>
+        <button type="button" data-move="right" aria-label="Jugador 2, derecha">▶</button>
+      </div>
+      <button class="world3d__jump" type="button" data-move="jump">SALTAR</button>
+      <button class="world3d__fly" type="button" data-move="fly">VOLAR</button>
+    </div>
+  </div>
+  <p class="world3d__loading" id="worldLoading" role="status">CREANDO EL MUNDO DE BLOQUES…</p>
+</section>
+
+<script src="game.js?v=2"></script>
+<script src="adventure.js?v=3"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="world3d.js?v=26"></script>
+</body>
+</html>
