@@ -46,8 +46,10 @@
   const inviteStatus = document.getElementById('worldInviteStatus');
   const inviteCancelButton = document.getElementById('worldInviteCancel');
   const modeLabel = document.getElementById('worldModeLabel');
+  const worldHint = document.getElementById('worldHint');
   const heldKeys = new Set();
   const touchButtons = new Set();
+  const playerCharacters = ['toothless', 'light'];
   const CHUNK_SIZE = 32;
   const CELL_SIZE = 2;
   const CELLS_PER_CHUNK = CHUNK_SIZE / CELL_SIZE;
@@ -245,6 +247,45 @@
     return mesh;
   }
 
+  const DRAGON_APPEARANCES = {
+    toothless: {
+      body: '#263449',
+      dark: '#111c2c',
+      belly: '#627b79',
+      wing: '#416f65',
+      eye: '#c1ff69',
+      claw: '#dce4cb',
+      marker: '#ff985b',
+      fin: '#e66c58',
+      glow: '#86efff'
+    },
+    light: {
+      body: '#e8f4ec',
+      dark: '#9eb9c4',
+      belly: '#ffffff',
+      wing: '#77b9c9',
+      eye: '#48dded',
+      claw: '#405667',
+      marker: '#85efff',
+      fin: '#83dce4',
+      glow: '#86efff'
+    }
+  };
+
+  function applyDragonAppearance(player, character) {
+    const appearance = DRAGON_APPEARANCES[character];
+    const materials = player.group.userData.appearanceMaterials;
+    if (!appearance || !materials || player.group.userData.character === character) return;
+    for (const key of ['body', 'dark', 'belly', 'wing', 'eye', 'claw', 'marker', 'fin', 'collar']) {
+      materials[key].color.set(key === 'collar' ? appearance.marker : appearance[key]);
+    }
+    materials.eye.emissive.set(appearance.eye);
+    materials.marker.emissive.set(appearance.marker);
+    player.group.userData.glow.visible = character === 'light';
+    player.group.userData.glow.color.set(appearance.glow);
+    player.group.userData.character = character;
+  }
+
   function createDragon(id) {
     const group = new THREE.Group();
     scene.add(group);
@@ -263,9 +304,14 @@
     const claw = makeMaterial(id === 0 ? '#dce4cb' : '#405667', { roughness: 0.5 });
 
     const markerColor = id === 0 ? '#ff985b' : '#85efff';
+    const markerMaterial = makeMaterial(markerColor, {
+      emissive: markerColor,
+      emissiveIntensity: 0.7,
+      roughness: 0.36
+    });
     const marker = new THREE.Mesh(
       new THREE.TorusGeometry(0.79, 0.075, 7, 18),
-      makeMaterial(markerColor, { emissive: markerColor, emissiveIntensity: 0.7, roughness: 0.36 })
+      markerMaterial
     );
     marker.rotation.x = Math.PI / 2;
     marker.position.set(0, 0.12, 0);
@@ -310,19 +356,31 @@
     group.add(tail);
     addBox(tail, darkMaterial, [0, 0, 0.42], [0.44, 0.37, 0.9]);
     addBox(tail, body, [0, 0, 0.97], [0.28, 0.25, 0.67]);
-    const fin = addBox(tail, id === 0 ? makeMaterial('#e66c58') : makeMaterial('#83dce4'), [0, 0.03, 1.41], [0.7, 0.18, 0.44]);
+    const finMaterial = makeMaterial(id === 0 ? '#e66c58' : '#83dce4');
+    const fin = addBox(tail, finMaterial, [0, 0.03, 1.41], [0.7, 0.18, 0.44]);
     fin.rotation.y = Math.PI / 4;
 
-    const collar = addBox(group, makeMaterial(markerColor), [0, 0.78, 0.83], [0.48, 0.32, 0.2]);
+    const collarMaterial = makeMaterial(markerColor);
+    const collar = addBox(group, collarMaterial, [0, 0.78, 0.83], [0.48, 0.32, 0.2]);
     collar.rotation.z = Math.PI / 4;
     group.userData.tail = tail;
     group.userData.body = bodyMesh;
+    group.userData.appearanceMaterials = {
+      body,
+      dark: darkMaterial,
+      belly,
+      wing,
+      eye,
+      claw,
+      marker: markerMaterial,
+      fin: finMaterial,
+      collar: collarMaterial
+    };
 
-    if (id === 1) {
-      const glow = new THREE.PointLight('#86efff', 0.8, 8);
-      glow.position.set(0, 1.5, 0);
-      group.add(glow);
-    }
+    const glow = new THREE.PointLight('#86efff', 0.8, 8);
+    glow.position.set(0, 1.5, 0);
+    group.add(glow);
+    group.userData.glow = glow;
 
     group.scale.setScalar(1.22);
     const x = id === 0 ? -1.5 : 1.5;
@@ -690,20 +748,28 @@
     if (mode === 'online-client') remoteStates.fill(null);
     root.classList.remove('world3d--bot', 'world3d--online-host', 'world3d--online-client');
     if (mode === 'bot') {
+      applyDragonAppearance(players[0], playerCharacters[0]);
+      applyDragonAppearance(players[1], playerCharacters[0] === 'toothless' ? 'light' : 'toothless');
       root.classList.add('world3d--bot');
       modeLabel.textContent = '1 JUGADOR · COMPAÑERO BOT';
-      document.getElementById('worldHint').innerHTML = 'W A S D + ESPACIO · F VOLAR';
+      worldHint.innerHTML = '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>ESPACIO</kbd> · <kbd>F</kbd> VOLAR';
     } else if (mode === 'online-host') {
+      applyDragonAppearance(players[0], playerCharacters[0]);
+      applyDragonAppearance(players[1], playerCharacters[1]);
       root.classList.add('world3d--online-host');
       modeLabel.textContent = 'SALA ONLINE · ERES EL JUGADOR 1';
-      document.getElementById('worldHint').innerHTML = 'W A S D + ESPACIO · F VOLAR';
+      worldHint.innerHTML = '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>ESPACIO</kbd> · <kbd>F</kbd> VOLAR';
     } else if (mode === 'online-client') {
+      applyDragonAppearance(players[0], playerCharacters[0]);
+      applyDragonAppearance(players[1], playerCharacters[1]);
       root.classList.add('world3d--online-client');
       modeLabel.textContent = 'SALA ONLINE · ERES EL JUGADOR 2';
-      document.getElementById('worldHint').innerHTML = 'FLECHAS + ENTER · R VOLAR';
+      worldHint.innerHTML = '<kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>ENTER</kbd> · <kbd>R</kbd> VOLAR';
     } else {
+      applyDragonAppearance(players[0], playerCharacters[0]);
+      applyDragonAppearance(players[1], playerCharacters[1]);
       modeLabel.textContent = 'COOPERATIVO LOCAL · 2 JUGADORES';
-      document.getElementById('worldHint').innerHTML = 'W A S D + ESPACIO · FLECHAS + ENTER · F/R VOLAR';
+      worldHint.innerHTML = '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>ESPACIO</kbd> · <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>ENTER</kbd> · <kbd>F/R</kbd>';
     }
     if (mode === 'online-host') inviteStatus.textContent = 'Esperando al jugador 2…';
   }
@@ -747,6 +813,9 @@
       if (!data || typeof data !== 'object') return;
       if (role === 'host' && data.type === 'input' && data.controls) {
         if (Number.isFinite(data.cameraYaw)) remoteCameraYaw = data.cameraYaw;
+        if (data.character === 'toothless' || data.character === 'light') {
+          applyDragonAppearance(players[1], data.character);
+        }
         for (const action of ['forward', 'back', 'left', 'right', 'jump', 'fly']) {
           controls[1][action] = data.controls[action] === true;
         }
@@ -763,6 +832,9 @@
             grounded: state.grounded === true,
             wing: Number.isFinite(state.wing) ? state.wing : 0
           };
+          if (state.character === 'toothless' || state.character === 'light') {
+            applyDragonAppearance(player, state.character);
+          }
         }
       }
     });
@@ -1196,12 +1268,18 @@
           z: player.z,
           yaw: player.yaw,
           grounded: player.grounded,
-          wing: player.group.userData.leftWing.rotation.x
+          wing: player.group.userData.leftWing.rotation.x,
+          character: player.group.userData.character
         }))
       });
       networkSent += 1;
     } else if (playMode === 'online-client') {
-      roomConnection.send({ type: 'input', controls: { ...controls[1] }, cameraYaw });
+      roomConnection.send({
+        type: 'input',
+        controls: { ...controls[1] },
+        cameraYaw,
+        character: playerCharacters[1]
+      });
       networkSent += 1;
     }
   }
@@ -1237,6 +1315,19 @@
 
   menuButton.addEventListener('click', openWorld);
   exitButton.addEventListener('click', closeWorld);
+  root.querySelectorAll('.world3d__character-option').forEach((button) => {
+    button.addEventListener('click', () => {
+      const player = Number(button.dataset.player);
+      const character = button.dataset.character;
+      if (!Number.isInteger(player) || player < 0 || player > 1 || !DRAGON_APPEARANCES[character]) return;
+      playerCharacters[player] = character;
+      root.querySelectorAll(`.world3d__character-option[data-player="${player}"]`).forEach((option) => {
+        const selected = option === button;
+        option.classList.toggle('is-selected', selected);
+        option.setAttribute('aria-pressed', String(selected));
+      });
+    });
+  });
   botStartButton.addEventListener('click', () => startPlay('bot'));
   localStartButton.addEventListener('click', () => startPlay('local'));
   createRoomButton.addEventListener('click', createRoom);
@@ -1347,7 +1438,14 @@
     open: openWorld,
     close: closeWorld,
     get players() {
-      return players.map(({ id, x, z, grounded, group }) => ({ id, x, y: group.position.y, z, grounded }));
+      return players.map(({ id, x, z, grounded, group }) => ({
+        id,
+        x,
+        y: group.position.y,
+        z,
+        grounded,
+        character: group.userData.character
+      }));
     },
     get chunkCount() { return chunks.size; },
     get wildlifeCount() {

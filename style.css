@@ -1111,6 +1111,90 @@ body.is-world{overflow:hidden}
   margin:0 0 4px;
   font-size:clamp(11px,2.2vw,17px);
 }
+.world3d__character-select{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.world3d__character-player{
+  min-width:0;
+  margin:0;
+  padding:7px;
+  border:1px solid rgba(201,255,235,.22);
+  border-radius:8px;
+}
+.world3d__character-player legend{
+  padding:0 5px;
+  color:#a5ffe0;
+  font-family:var(--px);
+  font-size:7px;
+}
+.world3d__character-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+}
+.world3d__character-option{
+  min-width:0;
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  padding:6px 3px;
+  color:#fff5da;
+  font-family:var(--px);
+  font-size:clamp(5px,.72vw,7px);
+  line-height:1.55;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,255,235,.2);
+  border-radius:6px;
+  cursor:pointer;
+}
+.world3d__character-option small{
+  color:rgba(255,248,229,.62);
+  font:inherit;
+  font-size:.82em;
+}
+.world3d__character-option.is-selected{
+  background:rgba(117,222,181,.16);
+  border-color:#a5ffe0;
+  box-shadow:inset 0 0 0 1px rgba(165,255,224,.22),0 0 12px rgba(117,222,181,.12);
+}
+.world3d__dragon-preview{
+  position:relative;
+  width:29px;
+  height:24px;
+  display:block;
+  border-radius:50% 46% 38% 40%;
+  background:var(--dragon-color);
+  box-shadow:inset -5px -5px 0 rgba(0,0,0,.2),0 0 10px rgba(165,255,224,.18);
+}
+.world3d__dragon-preview::before{
+  content:"";
+  position:absolute;
+  top:3px;
+  right:-5px;
+  width:9px;
+  height:8px;
+  background:var(--dragon-color);
+  border-radius:4px 5px 2px 2px;
+  transform:rotate(18deg);
+}
+.world3d__dragon-preview::after{
+  content:"";
+  position:absolute;
+  top:8px;
+  right:-3px;
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:var(--dragon-eye);
+  box-shadow:-8px -8px 0 -1px var(--dragon-color);
+}
+.world3d__dragon-preview--toothless{--dragon-color:#263449;--dragon-eye:#c1ff69}
+.world3d__dragon-preview--light{--dragon-color:#e8f4ec;--dragon-eye:#48dded}
 .world3d__lobby-button,.world3d__lobby-back{
   min-height:44px;
   padding:10px 12px;
@@ -1269,6 +1353,15 @@ body.is-world{overflow:hidden}
 }
 .world3d__legend span{display:inline-flex;align-items:center;gap:6px}
 .world3d__legend b{color:#a5ffe0}
+.world3d__legend kbd{
+  padding:3px 5px;
+  color:#e7fff5;
+  font:inherit;
+  font-size:.9em;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(201,255,235,.24);
+  border-radius:3px;
+}
 .world3d__dot{
   width:10px;height:10px;display:inline-block;
   border:2px solid #fff4d2;border-radius:50%;
@@ -1295,8 +1388,7 @@ body.is-world{overflow:hidden}
 .world3d__pads{display:none}
 .world3d__pad-label{display:none}
 .world3d--touch .world3d__pads{display:flex}
-.world3d--touch .world3d__legend{top:auto;bottom:132px;left:50%;transform:translateX(-50%);white-space:nowrap}
-.world3d--touch .world3d__legend span:nth-child(3){display:none}
+.world3d--touch .world3d__legend{display:none}
 .world3d__pad{
   position:absolute;
   bottom:max(14px,env(safe-area-inset-bottom));
@@ -1359,19 +1451,19 @@ body.is-world{overflow:hidden}
   .world3d__header{flex-direction:column;gap:8px}
   .world3d__status{max-width:100%;justify-content:flex-start}
   .world3d__badge,.world3d__exit{min-height:30px;padding:5px 8px;font-size:6px}
-  .world3d__legend{top:128px;left:12px;gap:9px;font-size:6px}
+  .world3d__legend{top:auto;bottom:12px;left:50%;transform:translateX(-50%);gap:8px;font-size:6px}
 }
 @media (max-width:420px){
   .world3d__sub{max-width:34ch}
   .world3d__status{gap:5px}
-  .world3d__legend{top:140px}
-  .world3d--touch .world3d__legend{top:auto;bottom:130px}
   .world3d__pad{gap:4px;padding:5px}
   .world3d__dpad{grid-template-columns:repeat(3,26px);grid-template-rows:repeat(2,30px);gap:2px}
   .world3d__dpad button{min-width:26px;min-height:30px;font-size:8px}
   .world3d__jump,.world3d__fly{min-width:40px;font-size:6px}
   .world3d__jump{min-height:44px}
   .world3d__fly{min-height:40px}
+  .world3d__character-select{grid-template-columns:1fr}
+  .world3d__character-option{min-height:72px}
 }
 @media (prefers-reduced-motion:reduce){
   .world3d *{scroll-behavior:auto!important}

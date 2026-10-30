@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=9">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐉</text></svg>">
 </head>
 <body>
@@ -260,6 +260,39 @@
     <div class="world3d__lobby-card">
       <p class="world3d__eyebrow">◆ elige tu aventura ◆</p>
       <h2 class="world3d__title" id="worldLobbyTitle">¿CÓMO QUIERES JUGAR?</h2>
+      <div class="world3d__character-select" aria-label="Elige el aspecto de cada dragón">
+        <fieldset class="world3d__character-player">
+          <legend>JUGADOR 1</legend>
+          <div class="world3d__character-options">
+            <button class="world3d__character-option is-selected" type="button" data-player="0" data-character="toothless" aria-pressed="true">
+              <span class="world3d__dragon-preview world3d__dragon-preview--toothless" aria-hidden="true"></span>
+              <span>CHIMUELO</span>
+              <small>NEGRO</small>
+            </button>
+            <button class="world3d__character-option" type="button" data-player="0" data-character="light" aria-pressed="false">
+              <span class="world3d__dragon-preview world3d__dragon-preview--light" aria-hidden="true"></span>
+              <span>FURIA LUMINOSA</span>
+              <small>BLANCA</small>
+            </button>
+          </div>
+        </fieldset>
+        <fieldset class="world3d__character-player">
+          <legend>JUGADOR 2</legend>
+          <div class="world3d__character-options">
+            <button class="world3d__character-option" type="button" data-player="1" data-character="toothless" aria-pressed="false">
+              <span class="world3d__dragon-preview world3d__dragon-preview--toothless" aria-hidden="true"></span>
+              <span>CHIMUELO</span>
+              <small>NEGRO</small>
+            </button>
+            <button class="world3d__character-option is-selected" type="button" data-player="1" data-character="light" aria-pressed="true">
+              <span class="world3d__dragon-preview world3d__dragon-preview--light" aria-hidden="true"></span>
+              <span>FURIA LUMINOSA</span>
+              <small>BLANCA</small>
+            </button>
+          </div>
+        </fieldset>
+      </div>
+      <p class="world3d__lobby-note">Elige un aspecto para cada jugador. En modo bot, el compañero tendrá el otro dragón.</p>
       <button class="world3d__lobby-button" id="worldBotStart" type="button">1 JUGADOR + BOT</button>
       <button class="world3d__lobby-button" id="worldLocalStart" type="button">2 JUGADORES · MISMO DISPOSITIVO</button>
       <div class="world3d__lobby-divider">O JUEGA EN LÍNEA</div>
@@ -332,6 +365,6 @@
 <script src="game.js?v=2"></script>
 <script src="adventure.js?v=3"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-<script src="world3d.js?v=24"></script>
+<script src="world3d.js?v=26"></script>
 </body>
 </html>

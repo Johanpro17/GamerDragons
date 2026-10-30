@@ -38,6 +38,7 @@ Entra en **AVENTURA** para cuidar a Chimuelo y a la Furia Luminosa, mejorar su v
 
 Selecciona **MUNDO 3D COOPERATIVO** y elige una modalidad:
 
+- Antes de empezar, elige el aspecto de cada jugador: Chimuelo (negro) o Furia Luminosa (blanca). En modo bot, el compañero usa automáticamente el dragón opuesto; en salas online, quien crea elige el jugador 1 y quien se une el jugador 2.
 - **1 jugador + bot**: explora con un compañero que sigue al jugador 1.
 - **2 jugadores en el mismo dispositivo**: compartan el teclado o conecten dos mandos.
 - **Sala online**: el jugador 1 crea la sala y comparte el código de seis dígitos; el jugador 2 lo escribe para unirse desde otro dispositivo.
@@ -49,7 +50,7 @@ El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean so
 | 1 | `W`, `A`, `S`, `D` | `Espacio` | Mantén `F` |
 | 2 | `↑`, `←`, `↓`, `→` | `Enter` | Mantén `R` |
 
-En pantallas táctiles, mantén **VOLAR** para subir. También se admiten dos gamepads y controles táctiles separados para cada jugador. El movimiento es relativo a la cámara: cada dragón puede desplazarse en cualquier dirección, y arrastrar el ratón o el dedo sobre el mundo permite orbitar la vista 360° alrededor de los jugadores. Usa `Esc` para volver al menú.
+En pantallas táctiles, cada jugador tiene un pad direccional y botones separados para **SALTAR** y mantener **VOLAR**; las teclas se muestran en una leyenda aparte en escritorio para no cubrir la escena ni los controles móviles. También se admiten dos gamepads. El movimiento es relativo a la cámara: cada dragón puede desplazarse en cualquier dirección, y arrastrar el ratón o el dedo sobre el mundo permite orbitar la vista 360° alrededor de los jugadores. Usa `Esc` para volver al menú.
 
 El renderer 3D usa Three.js 0.149.0 y las salas cargan PeerJS 1.5.4 desde jsDelivr cuando se solicitan. La conexión de salas usa PeerJS Cloud para señalización y WebRTC para enlazar los navegadores; por ello, el modo online necesita Internet y depende de un servicio externo. GitHub Pages aloja los archivos estáticos del juego, pero no ejecuta el servicio de señalización. No se guardan cuentas ni perfiles en un backend.
 
