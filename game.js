@@ -1718,6 +1718,7 @@
     if (action === 'start' || action === 'restart') startGame();
     else if (action === 'resume') resumeGame();
     else if (action === 'pause') togglePause();
+    else if (action === 'menu') showTitle();
     else if (action === 'mute') toggleMute();
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   });
