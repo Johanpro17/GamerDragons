@@ -1334,6 +1334,32 @@ body.is-world{overflow:hidden}
   background:rgba(255,255,255,.1);
   border:0;
 }
+.world3d__voice{
+  cursor:pointer;
+  color:#cfe9ff;
+  border-color:rgba(140,210,255,.45);
+}
+.world3d__voice:hover{background:rgba(30,58,80,.92)}
+.world3d__voice.is-live{
+  color:#8dffce;
+  border-color:rgba(110,255,196,.6);
+  background:rgba(16,54,44,.85);
+  animation:worldVoicePulse 1.6s ease-in-out infinite;
+}
+.world3d__voice.is-off{
+  color:#ffc9c9;
+  border-color:rgba(255,150,150,.5);
+  background:rgba(64,24,28,.85);
+}
+.world3d__voice.is-error{
+  color:#ffd9a1;
+  border-color:rgba(255,196,120,.55);
+  background:rgba(66,44,16,.88);
+}
+@keyframes worldVoicePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(110,255,196,.5)}
+  50%{box-shadow:0 0 0 4px rgba(110,255,196,0)}
+}
 .world3d__legend{
   position:absolute;
   top:116px;
@@ -1450,7 +1476,7 @@ body.is-world{overflow:hidden}
 @media (max-width:760px){
   .world3d__header{flex-direction:column;gap:8px}
   .world3d__status{max-width:100%;justify-content:flex-start}
-  .world3d__badge,.world3d__exit{min-height:30px;padding:5px 8px;font-size:6px}
+  .world3d__badge,.world3d__exit,.world3d__voice{min-height:30px;padding:5px 8px;font-size:6px}
   .world3d__legend{top:auto;bottom:12px;left:50%;transform:translateX(-50%);gap:8px;font-size:6px}
 }
 @media (max-width:420px){
