@@ -47,6 +47,7 @@
   const inviteCancelButton = document.getElementById('worldInviteCancel');
   const modeLabel = document.getElementById('worldModeLabel');
   const worldHint = document.getElementById('worldHint');
+  const voiceButton = document.getElementById('worldVoice');
   const heldKeys = new Set();
   const touchButtons = new Set();
   const playerCharacters = ['toothless', 'light'];
@@ -55,6 +56,7 @@
   const CELLS_PER_CHUNK = CHUNK_SIZE / CELL_SIZE;
   const VISIBLE_RADIUS = 3;
   const BIOME_LENGTH = 176;
+  const MAX_FLIGHT_HEIGHT = 14;
   const UP = new THREE.Vector3(0, 1, 0);
   const tempObject = new THREE.Object3D();
   const tempColor = new THREE.Color();
@@ -109,6 +111,23 @@
   let networkSent = 0;
   let networkReceived = 0;
   let remoteCameraYaw = 0;
+
+  /* ---------- voz online (WebRTC por PeerJS) ---------- */
+  const voice = {
+    local: null,
+    remote: null,
+    audio: null,
+    calls: [],
+    pendingCalls: [],
+    roomCode: null,
+    started: false,
+    asking: false,
+    callActive: false,
+    muted: false,
+    error: false,
+    remoteKnown: false,
+    remoteHasMic: false
+  };
 
   const chunks = new Map();
   const crystals = new Set();
@@ -772,6 +791,14 @@
       worldHint.innerHTML = '<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> + <kbd>ESPACIO</kbd> · <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> + <kbd>ENTER</kbd> · <kbd>F/R</kbd>';
     }
     if (mode === 'online-host') inviteStatus.textContent = 'Esperando al jugador 2…';
+
+    if (mode === 'online-host' || mode === 'online-client') {
+      resetRemoteVoice();
+      setVoiceUi();
+      startVoice();
+    } else {
+      voiceButton.hidden = true;
+    }
   }
 
   function showNetworkError(error) {
@@ -788,6 +815,174 @@
     peer = null;
     if (connection) connection.close();
     if (activePeer && !activePeer.destroyed) activePeer.destroy();
+    stopVoice();
+  }
+
+  /* ---------------- voz online ---------------- */
+  function setVoiceUi() {
+    const online = playMode === 'online-host' || playMode === 'online-client';
+    voiceButton.hidden = !online;
+    if (!online) return;
+
+    let label = 'VOZ';
+    let state = 'idle';
+    if (voice.error) { label = 'SIN MICRÓFONO'; state = 'error'; }
+    else if (!voice.local) { label = 'ACTIVANDO VOZ…'; state = 'pending'; }
+    else if (voice.muted) { label = 'MICRÓFONO OFF'; state = 'off'; }
+    else if (voice.callActive) { label = 'VOZ CONECTADA'; state = 'live'; }
+    else if (voice.remoteKnown && !voice.remoteHasMic) { label = 'EL OTRO SIN MICRÓFONO'; state = 'remote-off'; }
+    else { label = 'ESPERANDO AL OTRO…'; state = 'waiting'; }
+
+    voiceButton.textContent = label;
+    voiceButton.dataset.state = state;
+    voiceButton.setAttribute('aria-pressed', String(state === 'off'));
+    voiceButton.classList.toggle('is-live', state === 'live');
+    voiceButton.classList.toggle('is-error', state === 'error');
+    voiceButton.classList.toggle('is-off', state === 'off' || state === 'remote-off');
+  }
+
+  async function startVoice() {
+    if (voice.local) return true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      voice.error = true;
+      setVoiceUi();
+      return false;
+    }
+    voice.asking = true;
+    setVoiceUi();
+    try {
+      voice.local = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      voice.error = false;
+      for (const track of voice.local.getTracks()) track.enabled = !voice.muted;
+      // Contestar las llamadas que llegaron mientras esperábamos el permiso.
+      for (const call of voice.pendingCalls.splice(0)) {
+        try {
+          call.answer(voice.local);
+          trackVoiceCall(call);
+        } catch (error) {
+          console.warn('No se pudo contestar la llamada de voz:', error);
+        }
+      }
+    } catch (error) {
+      voice.error = true;
+      console.warn('No se pudo activar el micrófono:', error);
+      for (const call of voice.pendingCalls.splice(0)) {
+        try { call.close(); } catch (closeError) { /* ya cerrada */ }
+      }
+    }
+    voice.asking = false;
+    sendVoiceReady();
+    maybeStartVoiceCall();
+    setVoiceUi();
+    return Boolean(voice.local);
+  }
+
+  function sendVoiceReady() {
+    if (!roomConnection || !roomConnection.open) return;
+    try {
+      roomConnection.send({ type: 'voice-ready', hasMic: Boolean(voice.local) });
+    } catch (error) { /* la conexión aún no está lista */ }
+  }
+
+  function attachRemoteVoice(stream) {
+    if (!stream || voice.remote) return;
+    voice.remote = stream;
+    const audio = document.createElement('audio');
+    audio.autoplay = true;
+    audio.playsInline = true;
+    audio.setAttribute('aria-hidden', 'true');
+    audio.srcObject = stream;
+    document.body.appendChild(audio);
+    voice.audio = audio;
+    const play = () => audio.play().catch(() => {});
+    play();
+    stream.addEventListener('addtrack', play);
+    voice.callActive = true;
+    setVoiceUi();
+  }
+
+  function trackVoiceCall(call) {
+    voice.calls.push(call);
+    call.on('stream', attachRemoteVoice);
+    call.on('close', () => {
+      voice.calls = voice.calls.filter((item) => item !== call);
+      if (!voice.calls.length) {
+        voice.callActive = false;
+        setVoiceUi();
+      }
+    });
+    call.on('error', (error) => console.warn('Error en la llamada de voz:', error));
+  }
+
+  function maybeStartVoiceCall() {
+    if (voice.started || !voice.local || !voice.remoteKnown || !voice.remoteHasMic) return;
+    if (playMode !== 'online-client' || !peer || !voice.roomCode) return;
+    // Solo el jugador 2 inicia: así nunca hay dos llamadas y el audio no se duplica.
+    try {
+      const call = peer.call(`dragon-${voice.roomCode}`, voice.local);
+      if (!call) return;
+      voice.started = true;
+      trackVoiceCall(call);
+      setVoiceUi();
+    } catch (error) {
+      console.warn('No se pudo iniciar la voz:', error);
+    }
+  }
+
+  function resetRemoteVoice() {
+    for (const call of voice.calls) {
+      try { call.close(); } catch (error) { /* ya cerrada */ }
+    }
+    for (const call of voice.pendingCalls.splice(0)) {
+      try { call.close(); } catch (error) { /* ya cerrada */ }
+    }
+    voice.calls = [];
+    if (voice.audio) voice.audio.remove();
+    voice.audio = null;
+    voice.remote = null;
+    voice.callActive = false;
+    voice.remoteKnown = false;
+    voice.remoteHasMic = false;
+    voice.started = false;
+    setVoiceUi();
+  }
+
+  function stopVoice() {
+    resetRemoteVoice();
+    if (voice.local) {
+      for (const track of voice.local.getTracks()) track.stop();
+    }
+    voice.local = null;
+    voice.muted = false;
+    voice.error = false;
+    voice.roomCode = null;
+    voiceButton.hidden = true;
+    voiceButton.textContent = 'VOZ';
+    voiceButton.dataset.state = '';
+  }
+
+  function answerVoiceCall(call) {
+    if (!voice.local) {
+      if (voice.asking) {
+        // El permiso sigue en curso: contestaremos en cuanto llegue el stream.
+        voice.pendingCalls.push(call);
+        call.on('close', () => {
+          voice.pendingCalls = voice.pendingCalls.filter((item) => item !== call);
+        });
+        return;
+      }
+      try { call.close(); } catch (error) { /* sin micrófono no contestamos */ }
+      return;
+    }
+    try {
+      call.answer(voice.local);
+      trackVoiceCall(call);
+      setVoiceUi();
+    } catch (error) {
+      console.warn('No se pudo contestar la llamada de voz:', error);
+    }
   }
 
   function registerConnection(connection, role) {
@@ -807,10 +1002,22 @@
         inviteStatus.textContent = '¡Jugador 2 conectado! Ya pueden jugar.';
         invitePanel.hidden = true;
       }
+      sendVoiceReady();
+      maybeStartVoiceCall();
     });
     connection.on('data', (data) => {
       networkReceived += 1;
       if (!data || typeof data !== 'object') return;
+
+      if (data.type === 'voice-ready') {
+        voice.remoteKnown = true;
+        voice.remoteHasMic = data.hasMic === true;
+        if (!voice.remoteHasMic) voice.started = false;
+        maybeStartVoiceCall();
+        setVoiceUi();
+        return;
+      }
+
       if (role === 'host' && data.type === 'input' && data.controls) {
         if (Number.isFinite(data.cameraYaw)) remoteCameraYaw = data.cameraYaw;
         if (data.character === 'toothless' || data.character === 'light') {
@@ -841,6 +1048,7 @@
     connection.on('close', () => {
       if (roomConnection !== connection) return;
       roomConnection = null;
+      resetRemoteVoice();
       if (role === 'host') {
         controls[1].forward = false;
         controls[1].back = false;
@@ -865,6 +1073,15 @@
     connection.on('error', showNetworkError);
   }
 
+  function keepPeerConnected(activePeer) {
+    // Si el peer se desconecta del servidor de señalización (pestaña en segundo
+    // plano, red inestable), volvemos a registrarnos para que la sala siga viva.
+    activePeer.on('disconnected', () => {
+      if (activePeer.destroyed) return;
+      try { activePeer.reconnect(); } catch (error) { /* se reintentará al volver a fallar */ }
+    });
+  }
+
   async function createRoom() {
     createRoomButton.disabled = true;
     networkStatus.textContent = 'Creando sala online…';
@@ -874,6 +1091,9 @@
       window.crypto.getRandomValues(randomValue);
       const code = String(randomValue[0] % 1000000).padStart(6, '0');
       peer = new PeerClient(`dragon-${code}`, { debug: 0 });
+      voice.roomCode = code;
+      keepPeerConnected(peer);
+      peer.on('call', answerVoiceCall);
       peer.on('open', () => {
         startPlay('online-host');
         inviteCodeOutput.textContent = code;
@@ -914,6 +1134,9 @@
     try {
       const PeerClient = await loadPeerJs();
       peer = new PeerClient({ debug: 0 });
+      voice.roomCode = code;
+      keepPeerConnected(peer);
+      peer.on('call', answerVoiceCall);
       peer.on('open', () => {
         const connection = peer.connect(`dragon-${code}`, { reliable: true });
         registerConnection(connection, 'client');
@@ -1116,6 +1339,12 @@
       player.grounded = true;
     }
 
+    const ceiling = floor + MAX_FLIGHT_HEIGHT;
+    if (player.group.position.y >= ceiling) {
+      player.group.position.y = ceiling;
+      if (player.velocityY > 0) player.velocityY = 0;
+    }
+
     if (input.jump && !player.jumpWasDown && player.grounded) {
       player.velocityY = 8.5;
       player.grounded = false;
@@ -1315,6 +1544,17 @@
 
   menuButton.addEventListener('click', openWorld);
   exitButton.addEventListener('click', closeWorld);
+  voiceButton.addEventListener('click', () => {
+    if (!voice.local) {
+      // Sin micrófono (permiso denegado o aún no activado): reintentar.
+      voice.error = false;
+      startVoice();
+      return;
+    }
+    voice.muted = !voice.muted;
+    for (const track of voice.local.getTracks()) track.enabled = !voice.muted;
+    setVoiceUi();
+  });
   root.querySelectorAll('.world3d__character-option').forEach((button) => {
     button.addEventListener('click', () => {
       const player = Number(button.dataset.player);

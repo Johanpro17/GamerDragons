@@ -42,8 +42,9 @@ Selecciona **MUNDO 3D COOPERATIVO** y elige una modalidad:
 - **1 jugador + bot**: explora con un compañero que sigue al jugador 1.
 - **2 jugadores en el mismo dispositivo**: compartan el teclado o conecten dos mandos.
 - **Sala online**: el jugador 1 crea la sala y comparte el código de seis dígitos; el jugador 2 lo escribe para unirse desde otro dispositivo.
+- **Voz en directo**: en las salas online, ambos jugadores obtienen un botón **VOZ** en la cabecera para hablar por micrófono mientras juegan. Si el permiso se deniega o no hay micrófono, el botón muestra **SIN MICRÓFONO** y el juego sigue funcionando sin cortes; pulsa el botón para silenciar (**MICRÓFONO OFF**) o reactivar el micrófono.
 
-El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean sobre los árboles y pequeños animales recorren las praderas; la fauna cambia de aspecto según la región y desaparece al alejarse para mantener el rendimiento. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse. La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
+El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean sobre los árboles y pequeños animales recorren las praderas; la fauna cambia de aspecto según la región y desaparece al alejarse para mantener el rendimiento. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse, con un **tocho de vuelo de 14 unidades sobre el terreno** para que los dragones no alejen demasiado del mundo (en montañas el límite sube con la ladera). La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
 
 | Jugador | Moverse | Saltar | Volar |
 | --- | --- | --- | --- |
@@ -52,7 +53,7 @@ El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean so
 
 En pantallas táctiles, cada jugador tiene un pad direccional y botones separados para **SALTAR** y mantener **VOLAR**; las teclas se muestran en una leyenda aparte en escritorio para no cubrir la escena ni los controles móviles. También se admiten dos gamepads. El movimiento es relativo a la cámara: cada dragón puede desplazarse en cualquier dirección, y arrastrar el ratón o el dedo sobre el mundo permite orbitar la vista 360° alrededor de los jugadores. Usa `Esc` para volver al menú.
 
-El renderer 3D usa Three.js 0.149.0 y las salas cargan PeerJS 1.5.4 desde jsDelivr cuando se solicitan. La conexión de salas usa PeerJS Cloud para señalización y WebRTC para enlazar los navegadores; por ello, el modo online necesita Internet y depende de un servicio externo. GitHub Pages aloja los archivos estáticos del juego, pero no ejecuta el servicio de señalización. No se guardan cuentas ni perfiles en un backend.
+El renderer 3D usa Three.js 0.149.0 y las salas cargan PeerJS 1.5.4 desde jsDelivr cuando se solicitan. La conexión de salas usa PeerJS Cloud para señalización y WebRTC para enlazar los navegadores; la voz viaja por esa misma conexión WebRTC, sin servidores de audio externos. Por ello, el modo online necesita Internet y depende de un servicio externo. GitHub Pages aloja los archivos estáticos del juego, pero no ejecuta el servicio de señalización. No se guardan cuentas ni perfiles en un backend.
 
 ## Mecánicas
 
