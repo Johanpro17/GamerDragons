@@ -29,6 +29,8 @@ El workflow [deploy-pages.yml](./.github/workflows/deploy-pages.yml) publica el 
 
 Entra en **AVENTURA** para cuidar a Chimuelo y a la Furia Luminosa, mejorar su vínculo y salir a explorar. Alimenta, acaricia, entrena y descansa en el santuario; cada dragón guarda sus propios atributos y progreso en el navegador.
 
+En el acantilado te acompañan **Hipo** y **Astrid**: pulsalos para hablar con ellos y, cada cierto tiempo, te regalan **2 peces** (aparece un pececito dorado flotando cuando el regalo está listo).
+
 - **Vuelo de exploración**: recorre una travesía de 9 km a través de los Acantilados del Alba, las Islas Esmeralda, los Volcanes de Cristal y el Reino de las Auroras. El paisaje, el cielo y el mar cambian suavemente entre regiones.
 - **Vuelo y obstáculos**: pulsa `Espacio`, `W` o `↑` para aletear. Recoge peces y cruza aros para conseguir recompensas; esquiva rocas. También puedes pulsar el botón **ALETEAR** o tocar el lienzo.
 - **Progreso**: cada vuelo consume energía y fortalece el vínculo. El HUD indica la región, el avance, la distancia, los peces y los impactos recibidos.

@@ -130,6 +130,57 @@
   };
   const IDS = Object.keys(DRAGONS);
 
+  /* ---------------- personajes NPC del santuario ---------------- */
+  const GIFT_CD = 60000;
+  const NPCS = {
+    hipo: {
+      id: 'hipo',
+      name: 'HIPO',
+      x: 70, y: 179, dir: 1,
+      colors: {
+        hair: '#5a3a1e', skin: '#f2c9a0', eyes: '#3fae5a',
+        top: '#6e4a2c', topDark: '#4c3220', legs: '#4c3220',
+        belt: '#2f2013', boots: '#33241a', pack: '#57636f', metal: '#9aa3ad'
+      },
+      lines: [
+        'Hipo: «Los dragones no son armas… son amigos.»',
+        'Hipo ajusta su pierna protésica y sonríe.',
+        'Hipo: «Chimuelo confía en ti. No lo hagas mentir.»',
+        'Hipo suspira: «Llevar a los dragones al Mundo Oculto fue lo más difícil… y lo correcto.»',
+        'Hipo: «La inteligencia vence a la fuerza, siempre.»',
+        'Hipo saca un boceto de invento y lo guarda rápido.'
+      ],
+      gifts: [
+        'Hipo: «Toma, guardé unos peces para tus dragones.»',
+        'Hipo: «Un invento fallido… pero sirvió para pescar!»'
+      ]
+    },
+    astrid: {
+      id: 'astrid',
+      name: 'ASTRID',
+      x: 424, y: 180, dir: -1,
+      colors: {
+        hair: '#f4d774', skin: '#f6cfa8', eyes: '#4aa3f0',
+        top: '#8fa0b8', topDark: '#61748d', legs: '#f2c9a0',
+        belt: '#2f2013', boots: '#6b4a2f', skirt: '#7a4a2f',
+        axeWood: '#6b4a2f', axeHead: '#c3ccd6'
+      },
+      lines: [
+        'Astrid afila su hacha y te saluda con la cabeza.',
+        'Astrid: «Valentía es hacer lo correcto, aunque dé miedo.»',
+        'Astrid: «Tormenta me dijo que te viera… tiene buen ojo.»',
+        'Astrid: «Entrena hoy para vencer mañana.»',
+        'Astrid: «Un buen jefe escucha antes de decidir.»',
+        'Astrid mira a los dragones con orgullo: «Son una familia.»'
+      ],
+      gifts: [
+        'Astrid: «Tormenta y yo pescamos de más. Llévate esto.»',
+        'Astrid: «Come bien, vuela mejor. Toma.»'
+      ]
+    }
+  };
+  const NPC_IDS = Object.keys(NPCS);
+
   /* ---------------- guardado ---------------- */
   function defaults() {
     return {
@@ -141,6 +192,10 @@
       dragons: {
         toothless: { hunger: 82, mood: 78, energy: 88, bond: 8, petAt: 0 },
         light: { hunger: 74, mood: 86, energy: 92, bond: 6, petAt: 0 }
+      },
+      npcs: {
+        hipo: { giftAt: 0 },
+        astrid: { giftAt: 0 }
       }
     };
   }
@@ -165,6 +220,11 @@
           dst[key] = Number.isFinite(value) ? clamp(value, 0, MAX) : dst[key];
         }
         dst.petAt = Number(src.petAt) || 0;
+      }
+      for (const id of NPC_IDS) {
+        const src = data.npcs && data.npcs[id];
+        if (!src) continue;
+        base.npcs[id].giftAt = Number(src.giftAt) || 0;
       }
     } catch (e) { /* datos corruptos: empezar de cero */ }
     return base;
@@ -822,6 +882,246 @@
   }
 
   /* ---------------- dibujo: escena ---------------- */
+  /* ---------------- dibujo: personajes NPC ---------------- */
+  function drawNpc(g, id, t) {
+    const n = NPCS[id];
+    const c = n.colors;
+    const breathe = Math.sin(t * 1.6 + (id === 'astrid' ? 1.4 : 0)) * 0.7;
+    const blink = Math.sin(t * 0.85 + (id === 'astrid' ? 2.4 : 0.6)) > 0.985;
+    const sway = Math.sin(t * 1.3 + (id === 'astrid' ? 0.9 : 0)) * 1.4;
+
+    g.save();
+    g.translate(n.x, n.y);
+    g.scale(n.dir, 1);
+
+    /* sombra */
+    g.fillStyle = 'rgba(0,0,0,0.32)';
+    g.beginPath();
+    g.ellipse(0, 3, 13, 4.5, 0, 0, Math.PI * 2);
+    g.fill();
+
+    g.translate(0, breathe);
+
+    /* mochila de vuelo (Hipo, detrás del torso) */
+    if (id === 'hipo') {
+      g.fillStyle = c.pack;
+      g.fillRect(-9.5, -31, 3.5, 10);
+      g.fillStyle = '#454f59';
+      g.fillRect(-9.5, -27, 3.5, 1.5);
+    }
+
+    /* brazo trasero */
+    g.fillStyle = c.topDark;
+    g.fillRect(-8.5, -30, 3.5, 11);
+    g.fillStyle = c.skin;
+    g.fillRect(-8.5, -20, 3.5, 3);
+
+    /* piernas */
+    g.fillStyle = c.legs;
+    g.fillRect(-5, -15, 4, 9);
+    g.fillRect(1, -15, 4, 9);
+    if (id === 'hipo') {
+      /* bota trasera */
+      g.fillStyle = c.boots;
+      g.fillRect(-6, -6, 5, 6);
+      /* pierna protésica delantera */
+      g.fillStyle = c.metal;
+      g.fillRect(1, -8, 4, 5);
+      g.fillStyle = '#6f7883';
+      g.fillRect(1, -5, 4, 1);
+      g.fillStyle = '#3d4149';
+      g.fillRect(0.5, -3, 5, 3);
+    } else {
+      /* botas altas de vikinga */
+      g.fillStyle = c.boots;
+      g.fillRect(-6, -7, 5, 7);
+      g.fillRect(1, -7, 5, 7);
+      g.fillStyle = '#4a3524';
+      g.fillRect(-6, -7, 5, 1.5);
+      g.fillRect(1, -7, 5, 1.5);
+    }
+
+    /* torso */
+    g.fillStyle = c.top;
+    g.beginPath();
+    g.moveTo(-6, -31);
+    g.quadraticCurveTo(-7.5, -24, -6.5, -16);
+    g.lineTo(6.5, -16);
+    g.quadraticCurveTo(7.5, -24, 6, -31);
+    g.closePath();
+    g.fill();
+
+    if (id === 'hipo') {
+      /* correas del traje de vuelo */
+      g.strokeStyle = c.topDark;
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.moveTo(-4, -30);
+      g.lineTo(2, -18);
+      g.moveTo(4, -30);
+      g.lineTo(-1, -18);
+      g.stroke();
+    } else {
+      /* pechera de armadura + hombreras */
+      g.fillStyle = c.topDark;
+      g.fillRect(-1, -31, 2, 13);
+      g.beginPath();
+      g.ellipse(-7, -30, 3.5, 3, 0, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.ellipse(7, -30, 3.5, 3, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = c.top;
+      g.beginPath();
+      g.ellipse(-7, -31, 2, 1.5, 0, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.ellipse(7, -31, 2, 1.5, 0, 0, Math.PI * 2);
+      g.fill();
+    }
+
+    /* cinturón */
+    g.fillStyle = c.belt;
+    g.fillRect(-7, -18, 14, 2.5);
+    g.fillStyle = c.metal;
+    g.fillRect(-1.5, -18, 3, 2.5);
+
+    /* falda de cuero (Astrid) */
+    if (id === 'astrid') {
+      g.fillStyle = c.skirt;
+      g.beginPath();
+      g.moveTo(-6.5, -15.5);
+      g.lineTo(6.5, -15.5);
+      g.lineTo(8, -10);
+      g.lineTo(-8, -10);
+      g.closePath();
+      g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.25)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(-3, -15);
+      g.lineTo(-4, -10.5);
+      g.moveTo(3, -15);
+      g.lineTo(4, -10.5);
+      g.stroke();
+    }
+
+    /* cuello + cabeza */
+    g.fillStyle = c.skin;
+    g.fillRect(-2, -33, 4, 3);
+    g.beginPath();
+    g.ellipse(0, -37, 6.5, 6, 0, 0, Math.PI * 2);
+    g.fill();
+
+    /* ojos */
+    if (blink) {
+      g.fillStyle = '#241a12';
+      g.fillRect(-4, -35, 3, 1);
+      g.fillRect(1, -35, 3, 1);
+    } else {
+      g.fillStyle = c.eyes;
+      g.fillRect(-4, -37, 3, 3);
+      g.fillRect(1, -37, 3, 3);
+      g.fillStyle = '#101822';
+      g.fillRect(-3, -36, 1, 2);
+      g.fillRect(2, -36, 1, 2);
+      g.fillStyle = 'rgba(255,255,255,0.85)';
+      g.fillRect(-3, -37, 1, 1);
+      g.fillRect(2, -37, 1, 1);
+    }
+
+    /* boca */
+    g.fillStyle = '#c98d6b';
+    g.fillRect(1, -32, 3, 1);
+
+    /* pecas (Hipo) */
+    if (id === 'hipo') {
+      g.fillStyle = '#d9a877';
+      g.fillRect(4, -34, 1, 1);
+      g.fillRect(5, -33, 1, 1);
+      g.fillRect(3, -33, 1, 1);
+    }
+
+    /* pelo */
+    g.fillStyle = c.hair;
+    g.beginPath();
+    g.moveTo(-7.5, -37);
+    g.quadraticCurveTo(-8, -46, 0, -46);
+    g.quadraticCurveTo(8, -46, 7.5, -37);
+    g.closePath();
+    g.fill();
+    if (id === 'hipo') {
+      /* flequillo despeinado */
+      g.fillRect(-7, -40, 14, 3);
+      g.fillRect(-8, -42, 4, 4);
+      g.fillRect(4, -43, 4, 3);
+    } else {
+      /* coleta trenzada que se mueve */
+      for (let i = 0; i < 4; i++) {
+        g.beginPath();
+        g.ellipse(-6.5 - i * 0.8 + sway * (i * 0.3), -40 + i * 4,
+          3.2 - i * 0.35, 2.6 - i * 0.2, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+
+    /* brazo delantero + objeto en la mano */
+    g.fillStyle = c.top;
+    g.fillRect(5, -30, 3.5, 11);
+    g.fillStyle = c.skin;
+    g.fillRect(5, -20, 3.5, 3.5);
+
+    if (id === 'astrid') {
+      /* hacha vikinga */
+      g.fillStyle = c.axeWood;
+      g.fillRect(8.5, -46, 2.5, 38);
+      g.fillStyle = c.axeHead;
+      g.beginPath();
+      g.moveTo(11, -45);
+      g.quadraticCurveTo(17.5, -43, 16, -37);
+      g.quadraticCurveTo(13, -39, 11, -38);
+      g.closePath();
+      g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.45)';
+      g.fillRect(12.5, -44, 1, 5);
+      /* mano sobre el mango */
+      g.fillStyle = c.skin;
+      g.fillRect(8, -21, 4, 4);
+    } else {
+      /* pequeño invento con pantalla */
+      g.fillStyle = c.metal;
+      g.fillRect(7.5, -23, 6, 5);
+      g.fillStyle = '#4fc3f7';
+      g.fillRect(8.5, -22, 4, 2.5);
+      g.fillStyle = '#3d4149';
+      g.fillRect(13, -21.5, 1.5, 1.5);
+      g.fillStyle = c.skin;
+      g.fillRect(7, -21, 4, 4);
+    }
+
+    g.restore();
+  }
+
+  /* pececito dorado que avisa de un regalo listo */
+  function drawGiftFish(g, x, y, t) {
+    const bob = Math.sin(t * 3.2) * 2;
+    g.save();
+    g.translate(Math.round(x), Math.round(y + bob));
+    g.fillStyle = '#ffd166';
+    g.beginPath();
+    g.ellipse(0, 0, 5, 3, 0, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.moveTo(4, 0);
+    g.lineTo(8, -3);
+    g.lineTo(8, 3);
+    g.closePath();
+    g.fill();
+    g.fillStyle = '#7a2410';
+    g.fillRect(-2, -1, 1.5, 1.5);
+    g.restore();
+  }
+
   function drawScene(dt) {
     const g = sctx;
     const horizon = 140;
@@ -993,6 +1293,12 @@
     /* dragones */
     drawDragon(g, 'toothless', 176, ground, 1, 1, sceneT, active === 'toothless');
     drawDragon(g, 'light', 306, ground, 1, -1, sceneT, active === 'light');
+
+    /* personajes del santuario */
+    for (const id of NPC_IDS) {
+      drawNpc(g, id, sceneT);
+      if (npcGiftReady(id)) drawGiftFish(g, NPCS[id].x + 24, NPCS[id].y - 52, sceneT);
+    }
   }
 
   /* ---------------- acciones del santuario ---------------- */
@@ -1076,6 +1382,35 @@
   }
 
   /* ---------------- entrenamiento ---------------- */
+  /* ---------------- personajes NPC: diálogo y regalos ---------------- */
+  function npcGiftReady(id) {
+    const st = S.npcs[id];
+    return Date.now() - (st.giftAt || 0) >= GIFT_CD;
+  }
+
+  function talkToNpc(id) {
+    const n = NPCS[id];
+    const st = S.npcs[id];
+    if (!n || !st) return;
+    snd(() => dg.sfx.click());
+
+    if (npcGiftReady(id)) {
+      st.giftAt = Date.now();
+      S.fish = clamp(S.fish + 2, 0, 999);
+      say(pick(n.gifts));
+      setHint('+' + n.name + ' te regala 2 peces · cesta: ' + S.fish, 'is-good', 4);
+      snd(() => dg.sfx.heart());
+      spawnFx(active, 6, 'heart', '#ffd166');
+      refreshUI();
+      save();
+      return;
+    }
+
+    say(pick(n.lines));
+    const left = Math.ceil((GIFT_CD - (Date.now() - st.giftAt)) / 1000);
+    setHint(n.name + ' vendrá con un regalo en ' + left + ' s.', '', 3.5);
+  }
+
   const PTS = { perfect: 100, good: 72, ok: 48, fail: 20 };
   const LABEL = { perfect: 'PERFECTO', good: 'BIEN', ok: 'FLOJO', fail: 'FALLO' };
 
@@ -1973,13 +2308,40 @@
     flyFlap();
   });
 
-  /* clic sobre un dragón de la escena para elegirlo */
+  /* clic sobre un dragón o un personaje de la escena */
+  const hitNpc = (x, y, id) => {
+    const n = NPCS[id];
+    return Math.hypot(x - n.x, y - (n.y - 25)) < 42;
+  };
+  const scenePos = (e) => {
+    const rect = ui.scene.getBoundingClientRect();
+    if (!rect.width) return null;
+    return {
+      x: (e.clientX - rect.left) * (W / rect.width),
+      y: (e.clientY - rect.top) * (H / rect.height)
+    };
+  };
+
+  ui.scene.addEventListener('pointermove', (e) => {
+    if (mission.active || train.active) return;
+    const p = scenePos(e);
+    if (!p) return;
+    const over = NPC_IDS.some((id) => hitNpc(p.x, p.y, id))
+      || Math.hypot(p.x - 196, p.y - 134) < 58
+      || Math.hypot(p.x - 286, p.y - 134) < 58;
+    ui.scene.style.cursor = over ? 'pointer' : '';
+  });
+
   ui.scene.addEventListener('click', (e) => {
     if (mission.active) return;
-    const rect = ui.scene.getBoundingClientRect();
-    if (!rect.width) return;
-    const x = (e.clientX - rect.left) * (W / rect.width);
-    const y = (e.clientY - rect.top) * (H / rect.height);
+    const p = scenePos(e);
+    if (!p) return;
+    const { x, y } = p;
+    const npc = NPC_IDS.find((id) => hitNpc(x, y, id));
+    if (npc) {
+      talkToNpc(npc);
+      return;
+    }
     const near = (hx, hy) => Math.hypot(x - hx, y - hy) < 58;
     if (near(196, 134)) selectDragon('toothless');
     else if (near(286, 134)) selectDragon('light');
@@ -2043,6 +2405,7 @@
     save,
     refreshUI,
     selectDragon,
+    talkToNpc,
     feed,
     pet,
     rest,
