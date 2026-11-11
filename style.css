@@ -1388,6 +1388,27 @@ body.is-world{overflow:hidden}
   border:1px solid rgba(201,255,235,.24);
   border-radius:3px;
 }
+.world3d__talk{
+  position:absolute;
+  left:50%;
+  bottom:62px;
+  transform:translateX(-50%);
+  z-index:3;
+  max-width:min(580px,88vw);
+  margin:0;
+  padding:10px 14px;
+  font-family:var(--px);
+  font-size:clamp(7px,.8vw,9px);
+  line-height:1.8;
+  text-align:center;
+  color:#fff8e6;
+  background:rgba(12,31,42,.82);
+  border:1px solid rgba(201,255,235,.32);
+  border-radius:6px;
+  backdrop-filter:blur(8px);
+  text-shadow:0 1px 0 rgba(0,0,0,.5);
+}
+.world3d__talk[hidden]{display:none}
 .world3d__dot{
   width:10px;height:10px;display:inline-block;
   border:2px solid #fff4d2;border-radius:50%;
@@ -1478,6 +1499,7 @@ body.is-world{overflow:hidden}
   .world3d__status{max-width:100%;justify-content:flex-start}
   .world3d__badge,.world3d__exit,.world3d__voice{min-height:30px;padding:5px 8px;font-size:6px}
   .world3d__legend{top:auto;bottom:12px;left:50%;transform:translateX(-50%);gap:8px;font-size:6px}
+  .world3d__talk{bottom:88px;max-width:92vw;font-size:6px}
 }
 @media (max-width:420px){
   .world3d__sub{max-width:34ch}

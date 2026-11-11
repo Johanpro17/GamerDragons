@@ -47,6 +47,7 @@
   const inviteCancelButton = document.getElementById('worldInviteCancel');
   const modeLabel = document.getElementById('worldModeLabel');
   const worldHint = document.getElementById('worldHint');
+  const talkLabel = document.getElementById('worldTalk');
   const voiceButton = document.getElementById('worldVoice');
   const heldKeys = new Set();
   const touchButtons = new Set();
@@ -136,6 +137,13 @@
   let wildlifeMaterials = [];
   const players = [];
   const remoteStates = [null, null];
+  const npcs3d = [];
+  const npcMaterials = new Map();
+  let nearNpc = null;
+  let talkTimer = 0;
+  let talkText = '';
+  let pointerStartX = 0;
+  let pointerStartY = 0;
 
   function hash(x, z) {
     const value = Math.sin(x * 127.1 + z * 311.7) * 43758.5453123;
@@ -252,6 +260,7 @@
 
     createClouds();
     players.push(createDragon(0), createDragon(1));
+    buildNpcs();
     buildNearbyChunks(true);
     updateBiomeColors(0, 0);
     resize();
@@ -418,6 +427,338 @@
       walkTime: 0,
       x,
       z
+    };
+  }
+
+  /* ---------------- personajes NPC: Hipo y Astrid ---------------- */
+  const NPC_DEFS = [
+    {
+      id: 'hipo',
+      name: 'HIPO',
+      x: -5.5,
+      z: -4,
+      lines: [
+        'Hipo: «Los dragones no son armas… son amigos.»',
+        'Hipo: «La inteligencia vence a la fuerza, siempre.»',
+        'Hipo: «Chimuelo confía en ti. No lo hagas mentir.»',
+        'Hipo saca un boceto de invento y lo guarda rápido.'
+      ]
+    },
+    {
+      id: 'astrid',
+      name: 'ASTRID',
+      x: 5.5,
+      z: -4,
+      lines: [
+        'Astrid: «Valentía es hacer lo correcto, aunque dé miedo.»',
+        'Astrid: «Entrena hoy para vencer mañana.»',
+        'Astrid afila su hacha y te saluda con la cabeza.',
+        'Astrid: «Tormenta me dijo que te viera… tiene buen ojo.»'
+      ]
+    }
+  ];
+
+  function npcMat(color, options) {
+    const key = color + JSON.stringify(options || {});
+    if (!npcMaterials.has(key)) npcMaterials.set(key, makeMaterial(color, options));
+    return npcMaterials.get(key);
+  }
+
+  function makeNameTag(text) {
+    const tagCanvas = document.createElement('canvas');
+    tagCanvas.width = 256;
+    tagCanvas.height = 64;
+    const ctx = tagCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(10,6,18,0.8)';
+    ctx.fillRect(6, 8, 244, 48);
+    ctx.strokeStyle = 'rgba(165,255,224,0.6)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(6, 8, 244, 48);
+    ctx.font = 'bold 30px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffe9a8';
+    ctx.fillText(text, 128, 34);
+    const texture = new THREE.CanvasTexture(tagCanvas);
+    texture.minFilter = THREE.NearestFilter;
+    texture.magFilter = THREE.NearestFilter;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false
+    }));
+    sprite.scale.set(2.4, 0.6, 1);
+    sprite.position.set(0, 3.1, 0);
+    return sprite;
+  }
+
+  function buildHipo(group) {
+    const skin = npcMat('#f2c9a0');
+    const hair = npcMat('#5a3a1e');
+    const top = npcMat('#6e4a2c');
+    const dark = npcMat('#4c3220');
+    const boots = npcMat('#33241a');
+    const metal = npcMat('#9aa3ad');
+    const steel = npcMat('#3d4149');
+    const pack = npcMat('#57636f');
+    const strap = npcMat('#3a2816');
+    const screen = npcMat('#4fc3f7', { emissive: '#4fc3f7', emissiveIntensity: 0.55 });
+    const redLight = npcMat('#ff5a5a', { emissive: '#ff5a5a', emissiveIntensity: 0.5 });
+
+    /* pierna izquierda con bota */
+    addBox(group, boots, [-0.17, 0.13, 0.03], [0.3, 0.26, 0.42]);
+    addBox(group, dark, [-0.17, 0.7, 0], [0.3, 0.9, 0.32]);
+    /* pierna derecha protésica: encaje, segmentos, correas y pie metálico */
+    addBox(group, dark, [0.17, 0.98, 0], [0.3, 0.42, 0.32]);
+    addBox(group, steel, [0.17, 0.74, 0], [0.32, 0.1, 0.34]);
+    addBox(group, metal, [0.17, 0.56, 0], [0.24, 0.3, 0.26]);
+    addBox(group, strap, [0.17, 0.42, 0], [0.3, 0.07, 0.32]);
+    addBox(group, metal, [0.17, 0.28, 0], [0.24, 0.24, 0.26]);
+    addBox(group, steel, [0.17, 0.12, 0.05], [0.3, 0.14, 0.44]);
+
+    /* torso + cinturón con hebilla */
+    addBox(group, top, [0, 1.56, 0], [0.72, 0.9, 0.44]);
+    addBox(group, npcMat('#2f2013'), [0, 1.14, 0], [0.76, 0.14, 0.48]);
+    addBox(group, metal, [0, 1.14, 0.25], [0.16, 0.14, 0.05]);
+    /* arnés de vuelo cruzado con hebilla */
+    const strapA = addBox(group, strap, [0, 1.58, 0.24], [0.1, 1.0, 0.05]);
+    strapA.rotation.z = 0.52;
+    const strapB = addBox(group, strap, [0, 1.58, 0.24], [0.1, 1.0, 0.05]);
+    strapB.rotation.z = -0.52;
+    addBox(group, metal, [0, 1.58, 0.28], [0.15, 0.17, 0.05]);
+    /* mochila de vuelo */
+    addBox(group, pack, [0, 1.6, -0.33], [0.54, 0.74, 0.24]);
+    addBox(group, steel, [0, 1.96, -0.33], [0.4, 0.1, 0.2]);
+
+    /* brazos */
+    for (const sign of [-1, 1]) {
+      addBox(group, top, [sign * 0.47, 1.66, 0], [0.22, 0.6, 0.26]);
+      addBox(group, skin, [sign * 0.47, 1.3, 0], [0.2, 0.16, 0.22]);
+    }
+    /* invento con pantalla cian, antena y luz roja */
+    addBox(group, metal, [0.6, 1.2, 0.08], [0.3, 0.26, 0.16]);
+    addBox(group, screen, [0.6, 1.22, 0.17], [0.2, 0.12, 0.03]);
+    addBox(group, steel, [0.6, 1.36, 0.08], [0.3, 0.06, 0.16]);
+    addBox(group, metal, [0.69, 1.5, 0.08], [0.04, 0.24, 0.04]);
+    addBox(group, redLight, [0.69, 1.64, 0.08], [0.08, 0.07, 0.08]);
+
+    /* cabeza: cuello, ojos verdes, pecas y pelo despeinado */
+    addBox(group, skin, [0, 2.06, 0], [0.26, 0.16, 0.26]);
+    addBox(group, skin, [0, 2.36, 0], [0.6, 0.56, 0.54]);
+    addBox(group, skin, [-0.32, 2.34, 0], [0.08, 0.16, 0.1]);
+    addBox(group, skin, [0.32, 2.34, 0], [0.08, 0.16, 0.1]);
+    for (const sign of [-1, 1]) {
+      addBox(group, npcMat('#ffffff'), [sign * 0.14, 2.42, 0.27], [0.15, 0.14, 0.04], false);
+      addBox(group, npcMat('#3fae5a', { emissive: '#3fae5a', emissiveIntensity: 0.35 }),
+        [sign * 0.14, 2.42, 0.29], [0.09, 0.1, 0.03], false);
+    }
+    addBox(group, npcMat('#c98d6b'), [0.05, 2.24, 0.28], [0.16, 0.05, 0.03], false);
+    addBox(group, npcMat('#d9a877'), [0.2, 2.3, 0.28], [0.05, 0.05, 0.03], false);
+    addBox(group, npcMat('#d9a877'), [0.24, 2.24, 0.28], [0.05, 0.05, 0.03], false);
+    addBox(group, npcMat('#d9a877'), [-0.2, 2.3, 0.28], [0.05, 0.05, 0.03], false);
+    /* pelo castaño con mechones puntiagudos */
+    addBox(group, hair, [0, 2.68, 0], [0.64, 0.2, 0.58]);
+    addBox(group, hair, [0, 2.56, 0.22], [0.6, 0.14, 0.14]);
+    const spikeA = addBox(group, hair, [-0.18, 2.84, 0], [0.16, 0.26, 0.16]);
+    spikeA.rotation.z = 0.5;
+    const spikeB = addBox(group, hair, [0.04, 2.88, 0], [0.16, 0.3, 0.16]);
+    spikeB.rotation.z = -0.15;
+    const spikeC = addBox(group, hair, [0.24, 2.8, 0], [0.16, 0.24, 0.16]);
+    spikeC.rotation.z = -0.55;
+  }
+
+  function buildAstrid(group) {
+    const skin = npcMat('#f2c9a0');
+    const hair = npcMat('#f4d774');
+    const braid = npcMat('#d9b84a');
+    const armor = npcMat('#8fa0b8');
+    const armorDark = npcMat('#61748d');
+    const ridge = npcMat('#aab8c8');
+    const fur = npcMat('#e8dcc8');
+    const bracer = npcMat('#5a3a1e');
+    const skirt = npcMat('#7a4a2f');
+    const boots = npcMat('#6b4a2f');
+    const axeHead = npcMat('#c3ccd6');
+
+    /* botas altas con pelaje */
+    for (const sign of [-1, 1]) {
+      addBox(group, boots, [sign * 0.17, 0.24, 0.03], [0.32, 0.48, 0.44]);
+      addBox(group, fur, [sign * 0.17, 0.52, 0.03], [0.34, 0.14, 0.46]);
+      addBox(group, skin, [sign * 0.17, 0.78, 0], [0.26, 0.4, 0.28]);
+    }
+    /* falda de cuero con pliegues */
+    addBox(group, skirt, [0, 1.14, 0], [0.8, 0.3, 0.52]);
+    addBox(group, skirt, [0, 0.98, 0], [0.9, 0.12, 0.58]);
+    addBox(group, npcMat('#5f3822'), [0, 0.92, 0], [0.92, 0.06, 0.6]);
+
+    /* armadura con nervadura y estrías */
+    addBox(group, armor, [0, 1.72, 0], [0.7, 0.84, 0.44]);
+    addBox(group, ridge, [0, 1.72, 0.24], [0.1, 0.84, 0.04]);
+    addBox(group, armorDark, [0, 1.9, 0.235], [0.6, 0.07, 0.03]);
+    addBox(group, armorDark, [0, 1.6, 0.235], [0.6, 0.07, 0.03]);
+
+    /* hombreras de pelaje, brazos con brazaletes y manos */
+    for (const sign of [-1, 1]) {
+      addBox(group, fur, [sign * 0.45, 2.08, 0], [0.32, 0.26, 0.48]);
+      addBox(group, npcMat('#c9b99a'), [sign * 0.45, 1.96, 0], [0.3, 0.1, 0.44]);
+      addBox(group, armor, [sign * 0.47, 1.76, 0], [0.22, 0.44, 0.26]);
+      addBox(group, bracer, [sign * 0.47, 1.4, 0], [0.24, 0.34, 0.28]);
+      addBox(group, skin, [sign * 0.47, 1.18, 0], [0.2, 0.14, 0.22]);
+    }
+
+    /* hacha vikinga: mango largo, envoltura, hoja y filo */
+    addBox(group, boots, [0.66, 1.5, 0.02], [0.1, 1.9, 0.1]);
+    addBox(group, npcMat('#4a3524'), [0.66, 1.06, 0.02], [0.13, 0.34, 0.13]);
+    addBox(group, axeHead, [0.78, 2.36, 0.02], [0.34, 0.34, 0.12]);
+    addBox(group, npcMat('#f4f7fa'), [0.98, 2.36, 0.02], [0.08, 0.3, 0.1]);
+    addBox(group, axeHead, [0.72, 2.14, 0.02], [0.2, 0.14, 0.1]);
+
+    /* cabeza: cuello, ojos azules, pelo rubio y trenza */
+    addBox(group, skin, [0, 2.14, 0], [0.24, 0.16, 0.24]);
+    addBox(group, skin, [0, 2.44, 0], [0.58, 0.54, 0.52]);
+    addBox(group, skin, [-0.31, 2.42, 0], [0.08, 0.16, 0.1]);
+    addBox(group, skin, [0.31, 2.42, 0], [0.08, 0.16, 0.1]);
+    for (const sign of [-1, 1]) {
+      addBox(group, npcMat('#ffffff'), [sign * 0.14, 2.5, 0.26], [0.15, 0.14, 0.04], false);
+      addBox(group, npcMat('#4aa3f0', { emissive: '#4aa3f0', emissiveIntensity: 0.35 }),
+        [sign * 0.14, 2.5, 0.28], [0.09, 0.1, 0.03], false);
+    }
+    addBox(group, npcMat('#c98d6b'), [-0.04, 2.32, 0.27], [0.16, 0.05, 0.03], false);
+    addBox(group, hair, [0, 2.76, 0], [0.62, 0.2, 0.56]);
+    addBox(group, hair, [0, 2.64, 0.21], [0.58, 0.14, 0.14]);
+    addBox(group, hair, [-0.3, 2.48, 0], [0.12, 0.44, 0.52]);
+    addBox(group, hair, [0.3, 2.48, 0], [0.12, 0.44, 0.52]);
+    /* trenza trasera con segmentos y atado */
+    for (let i = 0; i < 4; i++) {
+      addBox(group, i % 2 === 0 ? hair : braid,
+        [-0.3 - i * 0.03, 2.4 - i * 0.24, -0.26 - i * 0.03],
+        [0.17 - i * 0.02, 0.26, 0.17 - i * 0.02]);
+    }
+    addBox(group, npcMat('#2f2013'), [-0.4, 1.4, -0.36], [0.14, 0.1, 0.14]);
+  }
+
+  function buildNpcs() {
+    for (const def of NPC_DEFS) {
+      const group = new THREE.Group();
+      const baseY = groundAt(def.x, def.z);
+      group.position.set(def.x, baseY, def.z);
+      group.scale.setScalar(0.78);
+      group.userData.npcId = def.id;
+      if (def.id === 'hipo') buildHipo(group);
+      else buildAstrid(group);
+      group.add(makeNameTag(def.name));
+      scene.add(group);
+      npcs3d.push({
+        id: def.id,
+        name: def.name,
+        lines: def.lines,
+        x: def.x,
+        z: def.z,
+        baseY,
+        phase: def.id === 'hipo' ? 0 : 1.6,
+        distance: Infinity,
+        group
+      });
+    }
+  }
+
+  function updateNpcs(elapsed, dt) {
+    if (!npcs3d.length) return;
+    let nearest = null;
+    let nearestDistance = Infinity;
+    for (const npc of npcs3d) {
+      npc.group.position.y = npc.baseY + Math.sin(elapsed * 1.7 + npc.phase) * 0.04;
+      let targetX = npc.x;
+      let targetZ = npc.z;
+      let best = Infinity;
+      for (const player of players) {
+        const distance = Math.hypot(player.x - npc.x, player.z - npc.z);
+        if (distance < best) {
+          best = distance;
+          targetX = player.x;
+          targetZ = player.z;
+        }
+      }
+      npc.distance = best;
+      const wanted = Math.atan2(targetX - npc.x, targetZ - npc.z);
+      const delta = Math.atan2(
+        Math.sin(wanted - npc.group.rotation.y),
+        Math.cos(wanted - npc.group.rotation.y)
+      );
+      npc.group.rotation.y += delta * Math.min(1, dt * 4.5);
+      if (best < nearestDistance) {
+        nearestDistance = best;
+        nearest = npc;
+      }
+    }
+
+    nearNpc = playMode !== 'lobby' && nearestDistance < 4.2 ? nearest : null;
+    talkTimer = Math.max(0, talkTimer - dt);
+    if (!talkLabel) return;
+    if (talkTimer > 0 && talkText) {
+      talkLabel.hidden = false;
+      talkLabel.textContent = talkText;
+    } else if (nearNpc) {
+      talkLabel.hidden = false;
+      talkLabel.textContent = 'PULSA E · HABLAR CON ' + nearNpc.name;
+    } else {
+      talkLabel.hidden = true;
+    }
+  }
+
+  function talkNpc(npc) {
+    if (!npc) return null;
+    let text = '';
+    const adventure = window.dragonAdventure;
+    if (adventure && typeof adventure.talkToNpc === 'function') {
+      const before = adventure.state ? adventure.state.fish : 0;
+      adventure.talkToNpc(npc.id);
+      const gained = (adventure.state ? adventure.state.fish : 0) - before;
+      const bubble = document.getElementById('advBubble');
+      const line = bubble ? bubble.textContent : '';
+      text = gained > 0 ? '+' + gained + ' PECES · ' + line : line;
+    }
+    if (!text) text = npc.lines[Math.floor(Math.random() * npc.lines.length)];
+    talkText = text;
+    talkTimer = 6.5;
+    if (talkLabel) {
+      talkLabel.hidden = false;
+      talkLabel.textContent = text;
+    }
+    return text;
+  }
+
+  function talkTo(id) {
+    return talkNpc(npcs3d.find((npc) => npc.id === id));
+  }
+
+  const npcRaycaster = new THREE.Raycaster();
+  const npcPointer = new THREE.Vector2();
+
+  function npcAtScreen(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height || !npcs3d.length) return null;
+    camera.updateMatrixWorld();
+    for (const npc of npcs3d) npc.group.updateMatrixWorld(true);
+    npcPointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    npcPointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    npcRaycaster.setFromCamera(npcPointer, camera);
+    const hits = npcRaycaster.intersectObjects(npcs3d.map((npc) => npc.group), true);
+    if (!hits.length) return null;
+    let object = hits[0].object;
+    while (object && !object.userData.npcId) object = object.parent;
+    return object ? npcs3d.find((npc) => npc.id === object.userData.npcId) : null;
+  }
+
+  function npcScreenPosition(npc) {
+    if (!camera) return null;
+    camera.updateMatrixWorld();
+    camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+    const point = new THREE.Vector3(npc.x, npc.baseY + 1.7, npc.z).project(camera);
+    return {
+      x: point.x * 0.5 + 0.5,
+      y: -point.y * 0.5 + 0.5,
+      behind: point.z > 1
     };
   }
 
@@ -1186,6 +1527,10 @@
       updateCamera(1);
       frame = requestAnimationFrame(animate);
       canvas.focus({ preventScroll: true });
+      talkTimer = 0;
+      talkText = '';
+      nearNpc = null;
+      if (talkLabel) talkLabel.hidden = true;
     } catch (error) {
       root.classList.add('is-open');
       root.setAttribute('aria-hidden', 'false');
@@ -1531,6 +1876,7 @@
     updateClouds(elapsed);
     updateWildlife(elapsed, dt);
     updateCrystals(elapsed, dt);
+    updateNpcs(elapsed, dt);
 
     hudTimer += dt;
     if (hudTimer >= 0.14) {
@@ -1596,13 +1942,17 @@
   window.addEventListener('keydown', (event) => {
     if (!isOpen) return;
     const allowed = [
-      'KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyF', 'KeyR',
+      'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyE', 'Space', 'KeyF', 'KeyR',
       'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Escape'
     ];
     if (!allowed.includes(event.code)) return;
     event.preventDefault();
     if (event.code === 'Escape') {
       closeWorld();
+      return;
+    }
+    if (event.code === 'KeyE') {
+      if (nearNpc && !event.repeat) talkNpc(nearNpc);
       return;
     }
     heldKeys.add(event.code);
@@ -1617,6 +1967,8 @@
     pointerId = event.pointerId;
     lastPointerX = event.clientX;
     lastPointerY = event.clientY;
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
     if (event.isTrusted) canvas.setPointerCapture(event.pointerId);
   });
 
@@ -1631,7 +1983,14 @@
   });
 
   const releaseLook = (event) => {
-    if (event.pointerId === pointerId) pointerId = null;
+    if (event.pointerId !== pointerId) return;
+    /* toque sin arrastrar: hablar con el NPC pulsado */
+    const moved = Math.hypot(event.clientX - pointerStartX, event.clientY - pointerStartY);
+    if (moved < 8 && playMode !== 'lobby' && lobby.hidden) {
+      const npc = npcAtScreen(event.clientX, event.clientY);
+      if (npc) talkNpc(npc);
+    }
+    pointerId = null;
   };
   canvas.addEventListener('pointerup', releaseLook);
   canvas.addEventListener('pointercancel', releaseLook);
@@ -1708,6 +2067,24 @@
       };
     },
     setControl,
+    talkTo,
+    capture() {
+      if (!renderer) return null;
+      renderer.render(scene, camera);
+      return canvas.toDataURL('image/png');
+    },
+    get npcs() {
+      return npcs3d.map((npc) => ({
+        id: npc.id,
+        name: npc.name,
+        x: npc.x,
+        z: npc.z,
+        y: npc.group.position.y,
+        yaw: npc.group.rotation.y,
+        distance: npc.distance,
+        screen: npcScreenPosition(npc)
+      }));
+    },
     step(dt) {
       updateKeyboardControls();
       updateGamepadControls();
@@ -1721,6 +2098,7 @@
       updateClouds(elapsed);
       updateWildlife(elapsed, dt);
       updateCrystals(elapsed, dt);
+      updateNpcs(elapsed, dt);
       return center;
     }
   };

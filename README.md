@@ -29,7 +29,7 @@ El workflow [deploy-pages.yml](./.github/workflows/deploy-pages.yml) publica el 
 
 Entra en **AVENTURA** para cuidar a Chimuelo y a la Furia Luminosa, mejorar su vínculo y salir a explorar. Alimenta, acaricia, entrena y descansa en el santuario; cada dragón guarda sus propios atributos y progreso en el navegador.
 
-En el acantilado te acompañan **Hipo** y **Astrid**: pulsalos para hablar con ellos y, cada cierto tiempo, te regalan **2 peces** (aparece un pececito dorado flotando cuando el regalo está listo).
+En el acantilado te acompañan **Hipo** y **Astrid**: pulsalos para hablar con ellos y, cada cierto tiempo, te regalan **2 peces** (aparece un pececito dorado flotando cuando el regalo está listo). Los mismos personajes te esperan en el **Mundo 3D** con sus características.
 
 - **Vuelo de exploración**: recorre una travesía de 9 km a través de los Acantilados del Alba, las Islas Esmeralda, los Volcanes de Cristal y el Reino de las Auroras. El paisaje, el cielo y el mar cambian suavemente entre regiones.
 - **Vuelo y obstáculos**: pulsa `Espacio`, `W` o `↑` para aletear. Recoge peces y cruza aros para conseguir recompensas; esquiva rocas. También puedes pulsar el botón **ALETEAR** o tocar el lienzo.
@@ -47,6 +47,8 @@ Selecciona **MUNDO 3D COOPERATIVO** y elige una modalidad:
 - **Voz en directo**: en las salas online, ambos jugadores obtienen un botón **VOZ** en la cabecera para hablar por micrófono mientras juegan. Si el permiso se deniega o no hay micrófono, el botón muestra **SIN MICRÓFONO** y el juego sigue funcionando sin cortes; pulsa el botón para silenciar (**MICRÓFONO OFF**) o reactivar el micrófono.
 
 El mundo de bloques se genera al avanzar. Bandadas de aves de colores aletean sobre los árboles y pequeños animales recorren las praderas; la fauna cambia de aspecto según la región y desaparece al alejarse para mantener el rendimiento. Se puede caminar, saltar y mantener pulsado el control de vuelo para elevarse, con un **tocho de vuelo de 14 unidades sobre el terreno** para que los dragones no alejen demasiado del mundo (en montañas el límite sube con la ladera). La cámara se aleja para que ambos dragones sigan visibles y el mundo no tiene un límite de recorrido.
+
+Junto al punto de aparición esperan **Hipo** y **Astrid** como personajes voxel con sus rasgos: el pelo despeinado, el arnés y la pierna protésica de él; la trenza, el pelaje y el hacha de ella. Al acercarte a menos de 4 unidades aparece la indicación **PULSA E · HABLAR CON …**; pulsa `E` o toca el personaje para conversar. Si el regalo está listo recibes **2 peces** para la aventura, con el mismo enfriamiento de 60 segundos que en el santuario.
 
 | Jugador | Moverse | Saltar | Volar |
 | --- | --- | --- | --- |
