@@ -160,9 +160,10 @@
       name: 'ASTRID',
       x: 424, y: 180, dir: -1,
       colors: {
-        hair: '#f4d774', skin: '#f6cfa8', eyes: '#4aa3f0',
-        top: '#8fa0b8', topDark: '#61748d', legs: '#f2c9a0',
-        belt: '#2f2013', boots: '#6b4a2f', skirt: '#7a4a2f',
+        hair: '#f4d774', braid: '#d9b84a', skin: '#f6cfa8', eyes: '#4aa3f0',
+        top: '#8fa0b8', topDark: '#61748d', ridge: '#aab8c8', legs: '#f2c9a0',
+        belt: '#2f2013', boots: '#6b4a2f', skirt: '#7a4a2f', bracer: '#5a3a1e',
+        fur: '#e8dcc8', furDark: '#c9b99a',
         axeWood: '#6b4a2f', axeHead: '#c3ccd6'
       },
       lines: [
@@ -893,11 +894,12 @@
     g.save();
     g.translate(n.x, n.y);
     g.scale(n.dir, 1);
+    g.scale(1.4, 1.4);
 
     /* sombra */
     g.fillStyle = 'rgba(0,0,0,0.32)';
     g.beginPath();
-    g.ellipse(0, 3, 13, 4.5, 0, 0, Math.PI * 2);
+    g.ellipse(0, 3, 15, 5, 0, 0, Math.PI * 2);
     g.fill();
 
     g.translate(0, breathe);
@@ -905,198 +907,426 @@
     /* mochila de vuelo (Hipo, detrás del torso) */
     if (id === 'hipo') {
       g.fillStyle = c.pack;
-      g.fillRect(-9.5, -31, 3.5, 10);
+      g.fillRect(-10.5, -35, 5, 15);
       g.fillStyle = '#454f59';
-      g.fillRect(-9.5, -27, 3.5, 1.5);
+      g.fillRect(-10.5, -30, 5, 2.5);
+      g.fillStyle = '#6d7a86';
+      g.fillRect(-10, -36, 4, 2);
+      g.fillStyle = '#3d4149';
+      g.fillRect(-5.5, -33, 1.8, 12);
     }
 
     /* brazo trasero */
     g.fillStyle = c.topDark;
-    g.fillRect(-8.5, -30, 3.5, 11);
+    g.fillRect(-9.5, -32, 4.5, 13);
     g.fillStyle = c.skin;
-    g.fillRect(-8.5, -20, 3.5, 3);
+    g.fillRect(-9.5, -20, 4.5, 3.5);
+    if (id === 'astrid') {
+      /* brazalete de cuero en el brazo trasero */
+      g.fillStyle = c.bracer;
+      g.fillRect(-9.5, -26, 4.5, 6);
+      g.fillStyle = 'rgba(0,0,0,0.35)';
+      g.fillRect(-9.5, -23.5, 4.5, 0.8);
+      g.fillRect(-9.5, -26, 4.5, 0.8);
+    }
 
     /* piernas */
     g.fillStyle = c.legs;
-    g.fillRect(-5, -15, 4, 9);
-    g.fillRect(1, -15, 4, 9);
+    g.fillRect(-5.5, -16, 5, 10);
+    g.fillRect(1, -16, 5, 10);
     if (id === 'hipo') {
       /* bota trasera */
       g.fillStyle = c.boots;
-      g.fillRect(-6, -6, 5, 6);
-      /* pierna protésica delantera */
-      g.fillStyle = c.metal;
-      g.fillRect(1, -8, 4, 5);
-      g.fillStyle = '#6f7883';
-      g.fillRect(1, -5, 4, 1);
+      g.fillRect(-6, -6.5, 5.5, 6.5);
+      g.fillStyle = '#221710';
+      g.fillRect(-6, -1.5, 5.5, 1.5);
+      /* pierna protésica delantera: encaje + segmentos + correas + pie */
       g.fillStyle = '#3d4149';
-      g.fillRect(0.5, -3, 5, 3);
+      g.fillRect(1, -16, 5, 3.5);
+      g.fillStyle = '#2b2f35';
+      g.fillRect(1, -13, 5, 1);
+      g.fillStyle = c.metal;
+      g.fillRect(1.5, -12, 4, 3);
+      g.fillStyle = '#6f7883';
+      g.fillRect(1.5, -12, 4, 0.8);
+      g.fillStyle = '#3d4149';
+      g.fillRect(1.5, -9.5, 4, 1);
+      g.fillStyle = c.metal;
+      g.fillRect(1.5, -8.5, 4, 3);
+      g.fillStyle = '#6f7883';
+      g.fillRect(1.5, -8.5, 4, 0.8);
+      g.fillStyle = '#2f2013';
+      g.fillRect(1, -11.5, 5, 1);
+      g.fillRect(1, -8, 5, 1);
+      g.fillStyle = '#3d4149';
+      g.fillRect(0.5, -5, 6, 3);
+      g.fillStyle = '#2b2f35';
+      g.fillRect(0.5, -2, 7, 2);
+      g.fillStyle = '#6f7883';
+      g.fillRect(0.5, -2, 7, 0.7);
     } else {
-      /* botas altas de vikinga */
+      /* botas altas de vikinga con pelaje */
       g.fillStyle = c.boots;
-      g.fillRect(-6, -7, 5, 7);
-      g.fillRect(1, -7, 5, 7);
+      g.fillRect(-6, -8.5, 5.5, 8.5);
+      g.fillRect(0.5, -8.5, 6, 8.5);
       g.fillStyle = '#4a3524';
-      g.fillRect(-6, -7, 5, 1.5);
-      g.fillRect(1, -7, 5, 1.5);
+      g.fillRect(-6, -4, 5.5, 1);
+      g.fillRect(0.5, -4, 6, 1);
+      g.fillStyle = c.fur;
+      g.beginPath();
+      g.ellipse(-3.3, -9, 3.4, 2.2, 0, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.ellipse(3.5, -9, 3.6, 2.2, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(0,0,0,0.15)';
+      g.beginPath();
+      g.ellipse(-3.3, -8.4, 2.4, 1.2, 0, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.ellipse(3.5, -8.4, 2.6, 1.2, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#2f2013';
+      g.fillRect(-6, -1.5, 5.5, 1.5);
+      g.fillRect(0.5, -1.5, 6, 1.5);
     }
 
     /* torso */
     g.fillStyle = c.top;
     g.beginPath();
-    g.moveTo(-6, -31);
-    g.quadraticCurveTo(-7.5, -24, -6.5, -16);
+    g.moveTo(-5.5, -33);
+    g.quadraticCurveTo(-7.5, -25, -6.5, -16);
     g.lineTo(6.5, -16);
-    g.quadraticCurveTo(7.5, -24, 6, -31);
+    g.quadraticCurveTo(7.5, -25, 5.5, -33);
     g.closePath();
     g.fill();
 
     if (id === 'hipo') {
-      /* correas del traje de vuelo */
-      g.strokeStyle = c.topDark;
-      g.lineWidth = 1.5;
+      /* costura central del traje de cuero */
+      g.strokeStyle = 'rgba(0,0,0,0.35)';
+      g.lineWidth = 1;
       g.beginPath();
-      g.moveTo(-4, -30);
-      g.lineTo(2, -18);
-      g.moveTo(4, -30);
-      g.lineTo(-1, -18);
+      g.moveTo(0, -32);
+      g.lineTo(0, -17);
       g.stroke();
-    } else {
-      /* pechera de armadura + hombreras */
+      /* arnés de vuelo: correas cruzadas con hebillas */
+      g.strokeStyle = '#3a2816';
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(-4.5, -32);
+      g.lineTo(3, -19);
+      g.moveTo(4.5, -32);
+      g.lineTo(-2, -19);
+      g.stroke();
+      g.fillStyle = '#c9ccd1';
+      g.fillRect(-1.2, -26, 2.8, 2.4);
+      g.fillStyle = '#8f959c';
+      g.fillRect(-0.6, -25.4, 1.6, 1.2);
+      /* hombrera de cuero */
       g.fillStyle = c.topDark;
-      g.fillRect(-1, -31, 2, 13);
       g.beginPath();
-      g.ellipse(-7, -30, 3.5, 3, 0, 0, Math.PI * 2);
+      g.ellipse(-6, -32, 3.6, 2.6, -0.3, 0, Math.PI * 2);
       g.fill();
       g.beginPath();
-      g.ellipse(7, -30, 3.5, 3, 0, 0, Math.PI * 2);
+      g.ellipse(6, -32, 3.6, 2.6, 0.3, 0, Math.PI * 2);
       g.fill();
-      g.fillStyle = c.top;
+      /* parche del cuello */
+      g.fillStyle = c.topDark;
       g.beginPath();
-      g.ellipse(-7, -31, 2, 1.5, 0, 0, Math.PI * 2);
+      g.moveTo(-3, -33);
+      g.lineTo(3, -33);
+      g.lineTo(2, -30);
+      g.lineTo(-2, -30);
+      g.closePath();
+      g.fill();
+    } else {
+      /* pechera de armadura con nervadura central */
+      g.fillStyle = c.topDark;
+      g.fillRect(-1.4, -33, 2.8, 16);
+      g.fillStyle = c.ridge;
+      g.fillRect(-0.6, -33, 1.2, 16);
+      /* estrías de la armadura */
+      g.strokeStyle = 'rgba(0,0,0,0.25)';
+      g.lineWidth = 1;
+      g.beginPath();
+      g.moveTo(-5, -27.5);
+      g.lineTo(5, -27.5);
+      g.moveTo(-5, -23.5);
+      g.lineTo(5, -23.5);
+      g.stroke();
+      /* hombreras de pelaje (gruesas y mullidas) */
+      g.fillStyle = c.furDark;
+      g.beginPath();
+      g.ellipse(-7.5, -31.5, 5, 3.8, -0.3, 0, Math.PI * 2);
       g.fill();
       g.beginPath();
-      g.ellipse(7, -31, 2, 1.5, 0, 0, Math.PI * 2);
+      g.ellipse(7.5, -31.5, 5, 3.8, 0.3, 0, Math.PI * 2);
       g.fill();
+      g.fillStyle = c.fur;
+      g.beginPath();
+      g.ellipse(-7.5, -33, 4, 2.6, -0.3, 0, Math.PI * 2);
+      g.fill();
+      g.beginPath();
+      g.ellipse(7.5, -33, 4, 2.6, 0.3, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      g.fillRect(-9, -34.5, 1.3, 1.3);
+      g.fillRect(-6.5, -35.5, 1.3, 1.3);
+      g.fillRect(6, -35.5, 1.3, 1.3);
+      g.fillRect(8.5, -34.5, 1.3, 1.3);
+      g.fillStyle = 'rgba(0,0,0,0.16)';
+      g.fillRect(-8, -29.5, 1.6, 1.6);
+      g.fillRect(7, -29.5, 1.6, 1.6);
     }
 
     /* cinturón */
     g.fillStyle = c.belt;
-    g.fillRect(-7, -18, 14, 2.5);
-    g.fillStyle = c.metal;
-    g.fillRect(-1.5, -18, 3, 2.5);
+    g.fillRect(-7, -18.5, 14, 2.8);
+    g.fillStyle = '#c9ccd1';
+    g.fillRect(-1.6, -18.5, 3.2, 2.8);
+    g.fillStyle = '#8f959c';
+    g.fillRect(-0.6, -17.8, 1.2, 1.4);
 
     /* falda de cuero (Astrid) */
     if (id === 'astrid') {
       g.fillStyle = c.skirt;
       g.beginPath();
-      g.moveTo(-6.5, -15.5);
-      g.lineTo(6.5, -15.5);
-      g.lineTo(8, -10);
-      g.lineTo(-8, -10);
+      g.moveTo(-7, -16);
+      g.lineTo(7, -16);
+      g.lineTo(9, -8);
+      g.lineTo(-9, -8);
       g.closePath();
       g.fill();
-      g.strokeStyle = 'rgba(0,0,0,0.25)';
+      g.strokeStyle = 'rgba(0,0,0,0.32)';
       g.lineWidth = 1;
       g.beginPath();
-      g.moveTo(-3, -15);
-      g.lineTo(-4, -10.5);
-      g.moveTo(3, -15);
-      g.lineTo(4, -10.5);
+      g.moveTo(-3.5, -15.5);
+      g.lineTo(-4.8, -8.5);
+      g.moveTo(0, -15.5);
+      g.lineTo(0, -8.5);
+      g.moveTo(3.5, -15.5);
+      g.lineTo(4.8, -8.5);
       g.stroke();
+      g.fillStyle = 'rgba(0,0,0,0.25)';
+      g.fillRect(-9, -9.2, 18, 1.2);
     }
 
     /* cuello + cabeza */
     g.fillStyle = c.skin;
-    g.fillRect(-2, -33, 4, 3);
+    g.fillRect(-2, -35.5, 4, 4);
     g.beginPath();
-    g.ellipse(0, -37, 6.5, 6, 0, 0, Math.PI * 2);
+    g.ellipse(0, -40, 7, 6.5, 0, 0, Math.PI * 2);
+    g.fill();
+    /* oreja */
+    g.beginPath();
+    g.ellipse(id === 'hipo' ? -6.8 : 6.8, -39.5, 1.6, 2.3, 0, 0, Math.PI * 2);
     g.fill();
 
     /* ojos */
     if (blink) {
       g.fillStyle = '#241a12';
-      g.fillRect(-4, -35, 3, 1);
-      g.fillRect(1, -35, 3, 1);
+      g.fillRect(-4.6, -38.5, 3.6, 1.2);
+      g.fillRect(1, -38.5, 3.6, 1.2);
     } else {
+      g.fillStyle = '#ffffff';
+      g.fillRect(-4.6, -41.5, 3.6, 3.2);
+      g.fillRect(1, -41.5, 3.6, 3.2);
       g.fillStyle = c.eyes;
-      g.fillRect(-4, -37, 3, 3);
-      g.fillRect(1, -37, 3, 3);
-      g.fillStyle = '#101822';
-      g.fillRect(-3, -36, 1, 2);
-      g.fillRect(2, -36, 1, 2);
-      g.fillStyle = 'rgba(255,255,255,0.85)';
-      g.fillRect(-3, -37, 1, 1);
-      g.fillRect(2, -37, 1, 1);
+      g.fillRect(-3.8, -41, 2.6, 2.6);
+      g.fillRect(1.8, -41, 2.6, 2.6);
+      g.fillStyle = id === 'hipo' ? '#0d160c' : '#10283c';
+      g.fillRect(-3.2, -40.4, 1.4, 2);
+      g.fillRect(2.4, -40.4, 1.4, 2);
+      g.fillStyle = 'rgba(255,255,255,0.95)';
+      g.fillRect(-3.8, -41.5, 1.2, 1.2);
+      g.fillRect(1.8, -41.5, 1.2, 1.2);
     }
+    /* cejas */
+    g.fillStyle = c.hair;
+    g.fillRect(-5, -43, 4, 1.3);
+    g.fillRect(1, -43, 4, 1.3);
+
+    /* nariz */
+    g.fillStyle = 'rgba(0,0,0,0.16)';
+    g.fillRect(-0.5, -37.5, 1.6, 1.2);
 
     /* boca */
     g.fillStyle = '#c98d6b';
-    g.fillRect(1, -32, 3, 1);
+    g.fillRect(1.5, -36.5, 3.2, 1.2);
 
     /* pecas (Hipo) */
     if (id === 'hipo') {
       g.fillStyle = '#d9a877';
-      g.fillRect(4, -34, 1, 1);
-      g.fillRect(5, -33, 1, 1);
-      g.fillRect(3, -33, 1, 1);
+      g.fillRect(4, -38, 1.2, 1.2);
+      g.fillRect(5.4, -37, 1.2, 1.2);
+      g.fillRect(3.4, -36.8, 1.2, 1.2);
+      g.fillRect(4.6, -35.8, 1.2, 1.2);
+      g.fillRect(-4.6, -37.5, 1.2, 1.2);
+      g.fillRect(-3.4, -36.6, 1.2, 1.2);
     }
 
     /* pelo */
     g.fillStyle = c.hair;
     g.beginPath();
-    g.moveTo(-7.5, -37);
-    g.quadraticCurveTo(-8, -46, 0, -46);
-    g.quadraticCurveTo(8, -46, 7.5, -37);
+    g.moveTo(-7.8, -40.5);
+    g.quadraticCurveTo(-8.8, -49.5, 0, -49.5);
+    g.quadraticCurveTo(8.8, -49.5, 7.8, -40.5);
     g.closePath();
     g.fill();
     if (id === 'hipo') {
-      /* flequillo despeinado */
-      g.fillRect(-7, -40, 14, 3);
-      g.fillRect(-8, -42, 4, 4);
-      g.fillRect(4, -43, 4, 3);
+      /* flequillo despeinado con mechones */
+      g.fillRect(-7.5, -44, 15, 3.5);
+      g.fillRect(-8.2, -46.5, 4.5, 4.5);
+      g.fillRect(3.5, -47, 4.8, 4);
+      /* mechones puntiagudos */
+      g.beginPath();
+      g.moveTo(-5, -47.5);
+      g.lineTo(-7.5, -52);
+      g.lineTo(-2.5, -49.5);
+      g.closePath();
+      g.fill();
+      g.beginPath();
+      g.moveTo(1, -48.5);
+      g.lineTo(2.5, -53);
+      g.lineTo(5.5, -49.5);
+      g.closePath();
+      g.fill();
+      g.beginPath();
+      g.moveTo(5.5, -47);
+      g.lineTo(9.5, -50.5);
+      g.lineTo(7.5, -46);
+      g.closePath();
+      g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.12)';
+      g.fillRect(-4, -48.5, 6, 1.6);
     } else {
-      /* coleta trenzada que se mueve */
-      for (let i = 0; i < 4; i++) {
+      /* flequillo recogido */
+      g.fillRect(-7.5, -44, 15, 3.5);
+      /* mechón suelto en la sien */
+      g.beginPath();
+      g.moveTo(-7.8, -43);
+      g.quadraticCurveTo(-10, -39, -8.4, -35);
+      g.lineTo(-6.8, -36);
+      g.quadraticCurveTo(-8, -39.5, -6.8, -43);
+      g.closePath();
+      g.fill();
+
+      /* trenza con trenzado visible */
+      g.fillStyle = c.hair;
+      g.beginPath();
+      g.ellipse(-6.2, -45, 3.6, 3, -0.4, 0, Math.PI * 2);
+      g.fill();
+      for (let i = 0; i < 5; i++) {
+        const bx = -7.8 - i * 0.9 + sway * (i * 0.35);
+        const by = -41 + i * 4.3;
+        const rw = 3.5 - i * 0.42;
+        const rh = 2.9 - i * 0.32;
+        g.fillStyle = i % 2 === 0 ? c.hair : c.braid;
         g.beginPath();
-        g.ellipse(-6.5 - i * 0.8 + sway * (i * 0.3), -40 + i * 4,
-          3.2 - i * 0.35, 2.6 - i * 0.2, 0, 0, Math.PI * 2);
+        g.ellipse(bx, by, rw, rh, -0.3, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.3)';
+        g.beginPath();
+        g.ellipse(bx - 0.6, by - 0.9, rw * 0.45, rh * 0.35, -0.3, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = 'rgba(0,0,0,0.2)';
+        g.beginPath();
+        g.ellipse(bx + 0.9, by + 0.9, rw * 0.4, rh * 0.3, -0.3, 0, Math.PI * 2);
         g.fill();
       }
+      /* atado de la trenza */
+      g.fillStyle = c.braid;
+      g.beginPath();
+      g.ellipse(-12.2, -19, 1.9, 2.5, -0.3, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#2f2013';
+      g.fillRect(-13.2, -21.5, 3.2, 1.6);
+      g.fillStyle = 'rgba(255,255,255,0.2)';
+      g.fillRect(-13.2, -21.5, 3.2, 0.6);
     }
 
     /* brazo delantero + objeto en la mano */
     g.fillStyle = c.top;
-    g.fillRect(5, -30, 3.5, 11);
+    g.fillRect(5.5, -32, 4.5, 13);
     g.fillStyle = c.skin;
-    g.fillRect(5, -20, 3.5, 3.5);
+    g.fillRect(5.5, -20, 4.5, 4);
 
     if (id === 'astrid') {
-      /* hacha vikinga */
+      /* brazalete de cuero en el brazo delantero */
+      g.fillStyle = c.bracer;
+      g.fillRect(5.5, -26.5, 4.5, 6);
+      g.fillStyle = 'rgba(0,0,0,0.35)';
+      g.fillRect(5.5, -24, 4.5, 0.8);
+      g.fillRect(5.5, -26.5, 4.5, 0.8);
+      g.fillStyle = 'rgba(255,255,255,0.22)';
+      g.fillRect(6.1, -26, 1.2, 5);
+
+      /* HACHA vikinga: mango largo con envoltura + hoja curva con filo */
       g.fillStyle = c.axeWood;
-      g.fillRect(8.5, -46, 2.5, 38);
+      g.fillRect(9.2, -54, 3.2, 48);
+      g.fillStyle = 'rgba(0,0,0,0.28)';
+      g.fillRect(10.8, -54, 1.1, 48);
+      g.fillStyle = '#4a3524';
+      g.fillRect(9.2, -27, 3.2, 8);
+      g.fillStyle = 'rgba(255,255,255,0.18)';
+      g.fillRect(9.2, -25, 3.2, 0.9);
+      g.fillRect(9.2, -21.5, 3.2, 0.9);
+      /* hoja curva */
       g.fillStyle = c.axeHead;
       g.beginPath();
-      g.moveTo(11, -45);
-      g.quadraticCurveTo(17.5, -43, 16, -37);
-      g.quadraticCurveTo(13, -39, 11, -38);
+      g.moveTo(12.4, -53);
+      g.quadraticCurveTo(21, -51, 19.8, -41);
+      g.quadraticCurveTo(19, -35.5, 16.4, -34.5);
+      g.quadraticCurveTo(14.8, -41, 12.4, -42);
       g.closePath();
       g.fill();
-      g.fillStyle = 'rgba(255,255,255,0.45)';
-      g.fillRect(12.5, -44, 1, 5);
+      /* filo brillante */
+      g.fillStyle = 'rgba(255,255,255,0.72)';
+      g.beginPath();
+      g.moveTo(19.7, -50.5);
+      g.quadraticCurveTo(21.4, -41.5, 19.4, -35);
+      g.quadraticCurveTo(20.6, -41.5, 18.6, -50);
+      g.closePath();
+      g.fill();
+      /* sombra de la hoja */
+      g.fillStyle = 'rgba(0,0,0,0.2)';
+      g.beginPath();
+      g.moveTo(12.4, -53);
+      g.quadraticCurveTo(16.4, -51, 15.8, -42.5);
+      g.lineTo(12.4, -42);
+      g.closePath();
+      g.fill();
+      /* remaches */
+      g.fillStyle = '#8f959c';
+      g.fillRect(12.6, -46.5, 2.2, 4);
+      g.fillStyle = '#c9ccd1';
+      g.fillRect(13, -46, 1.1, 3);
       /* mano sobre el mango */
       g.fillStyle = c.skin;
-      g.fillRect(8, -21, 4, 4);
+      g.fillRect(8.2, -23.5, 4.8, 4.8);
     } else {
-      /* pequeño invento con pantalla */
+      /* pequeño invento con pantalla, antena y luces */
       g.fillStyle = c.metal;
-      g.fillRect(7.5, -23, 6, 5);
-      g.fillStyle = '#4fc3f7';
-      g.fillRect(8.5, -22, 4, 2.5);
+      g.fillRect(8.8, -26, 7.4, 6.5);
       g.fillStyle = '#3d4149';
-      g.fillRect(13, -21.5, 1.5, 1.5);
+      g.fillRect(8.8, -26, 7.4, 1.6);
+      g.fillStyle = '#4fc3f7';
+      g.fillRect(9.8, -23.8, 5.4, 3.2);
+      g.fillStyle = 'rgba(255,255,255,0.55)';
+      g.fillRect(10.3, -23.3, 2.2, 1.2);
+      g.fillStyle = '#2b9ad6';
+      g.fillRect(9.8, -20.6, 5.4, 0.8);
+      g.fillStyle = '#8f959c';
+      g.fillRect(15.2, -28.6, 1.3, 3);
+      g.fillStyle = '#ff5a5a';
+      g.fillRect(14.8, -29.8, 2, 1.6);
+      g.fillStyle = '#ff8a5a';
+      g.fillRect(10.2, -19.4, 1.7, 1.7);
+      g.fillStyle = '#6fdc8c';
+      g.fillRect(12.6, -19.4, 1.7, 1.7);
+      /* mano */
       g.fillStyle = c.skin;
-      g.fillRect(7, -21, 4, 4);
+      g.fillRect(7.4, -22.5, 4.4, 4.4);
     }
 
     g.restore();
@@ -1297,7 +1527,7 @@
     /* personajes del santuario */
     for (const id of NPC_IDS) {
       drawNpc(g, id, sceneT);
-      if (npcGiftReady(id)) drawGiftFish(g, NPCS[id].x + 24, NPCS[id].y - 52, sceneT);
+      if (npcGiftReady(id)) drawGiftFish(g, NPCS[id].x + 27, NPCS[id].y - 67, sceneT);
     }
   }
 
@@ -2311,7 +2541,7 @@
   /* clic sobre un dragón o un personaje de la escena */
   const hitNpc = (x, y, id) => {
     const n = NPCS[id];
-    return Math.hypot(x - n.x, y - (n.y - 25)) < 42;
+    return Math.hypot(x - n.x, y - (n.y - 33)) < 54;
   };
   const scenePos = (e) => {
     const rect = ui.scene.getBoundingClientRect();
